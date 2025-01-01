@@ -1,0 +1,9 @@
+{
+    "apps": [
+        {
+            "name": "UltraTOB",
+            "script": "npm",
+            "args" : "run build:start"
+        }
+    ]
+}
