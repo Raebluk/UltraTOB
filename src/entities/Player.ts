@@ -25,6 +25,9 @@ export class Player extends CustomBaseEntity {
     guild!: Guild
 
 	@Property()
+	dcTag!: string
+
+	@Property()
     exp: number = 0
 
 }
@@ -40,6 +43,7 @@ export class PlayerRepository extends EntityRepository<Player> {
 		player.id = `${user.id}-${guild.id}` // Assuming a composite key
 		player.user = await this.em.findOneOrFail(User, { id: user.id })
 		player.guild = await this.em.findOneOrFail(Guild, { id: guild.id })
+		player.dcTag = user.tag
 		player.exp = 0
 		await this.em.persistAndFlush(player)
 
