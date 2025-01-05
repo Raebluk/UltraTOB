@@ -29,9 +29,10 @@ export class Logger {
 	private readonly logPath: string = path.join(__dirname, '..', '..', 'logs')
 	private readonly logArchivePath: string = path.join(this.logPath, 'archives')
 
-	private readonly levels = ['info', 'warn', 'error'] as const
+	private readonly levels = ['info', 'debug', 'warn', 'error'] as const
 	private embedLevelBuilder = {
 		info: (message: string): BaseMessageOptions => ({ embeds: [{ title: 'INFO', description: message, color: 0x007FE7, timestamp: new Date().toISOString() }] }),
+		debug: (message: string): BaseMessageOptions => ({ embeds: [{ title: 'DEBUG', description: message, color: 0x007FE7, timestamp: new Date().toISOString() }] }),
 		warn: (message: string): BaseMessageOptions => ({ embeds: [{ title: 'WARN', description: message, color: 0xF37100, timestamp: new Date().toISOString() }] }),
 		error: (message: string): BaseMessageOptions => ({ embeds: [{ title: 'ERROR', description: message, color: 0x7C1715, timestamp: new Date().toISOString() }] }),
 	}
@@ -60,6 +61,7 @@ export class Logger {
 		if (!this.store.get('botHasBeenReloaded')) {
 			console.info = (...args) => this.baseLog('info', ...args)
 			console.warn = (...args) => this.baseLog('warn', ...args)
+			console.debug = (...args) => this.baseLog('debug', ...args)
 			console.error = (...args) => this.baseLog('error', ...args)
 		}
 	}
@@ -87,7 +89,7 @@ export class Logger {
 	/**
 	 * Log a message in the console.
 	 * @param message the message to log
-	 * @param level info (default) | warn | error
+	 * @param level info (default) | debug | warn | error
 	 * @param ignoreTemplate if it should ignore the timestamp template (default to false)
 	 */
 	console(message: string, level: typeof this.levels[number] = 'info', ignoreTemplate = false) {
@@ -98,6 +100,8 @@ export class Logger {
 			return
 
 		let templatedMessage = ignoreTemplate ? message : `${level} [${chalk.dim.gray(formatDate(new Date()))}] ${message}`
+		if (level === 'debug')
+			templatedMessage = chalk.dim(templatedMessage)
 		if (level === 'error')
 			templatedMessage = chalk.red(templatedMessage)
 
@@ -113,7 +117,7 @@ export class Logger {
 	/**
 	 * Log a message in a log file.
 	 * @param message the message to log
-	 * @param level info (default) | warn | error
+	 * @param level info (default) | debug | warn | error
 	 */
 	file(message: string, level: typeof this.levels[number] = 'info') {
 		if (!validString(message))
@@ -138,7 +142,7 @@ export class Logger {
 	 * Log a message in a Discord channel using embeds.
 	 * @param channelId the ID of the discord channel to log to
 	 * @param message the message to log or a [MessageOptions](https://discord.js.org/#/docs/discord.js/main/typedef/BaseMessageOptions) compliant object (like embeds, components, etc)
-	 * @param level info (default) | warn | error
+	 * @param level info (default) | debug | warn | error
 	 */
 	async discordChannel(channelId: string, message: string | BaseMessageOptions, level?: typeof this.levels[number]) {
 		if (!this.client.token)
@@ -227,7 +231,7 @@ export class Logger {
 	/**
 	 * Shortcut function that will log in the console, and optionally in a file or discord channel depending on params.
 	 * @param message message to log
-	 * @param level info (default) | warn | error
+	 * @param level info (default) | debug | warn | error
 	 * @param saveToFile if true, the message will be saved to a file (default to true)
 	 * @param channelId Discord channel to log to (if `null`, nothing will be logged to Discord)
 	 */
