@@ -50,4 +50,14 @@ export class PlayerRepository extends EntityRepository<Player> {
 		return player
 	}
 
+	async updatePlayerExp(filterQuery: object, expDelta: number): Promise<boolean> {
+		const player = await this.em.findOne(Player, filterQuery) || null
+		if (!player)
+			return false
+		player.exp = player.exp + expDelta
+		await this.em.persistAndFlush(player)
+
+		return true
+	}
+
 }
