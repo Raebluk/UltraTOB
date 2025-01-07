@@ -64,6 +64,38 @@ type RootTranslation = {
 				DESCRIPTION: RequiredParams<'link'>
 			}
 		}
+		EXPMOD: {
+			/**
+			 * e​x​p​m​o​d
+			 */
+			NAME: string
+			/**
+			 * M​o​d​i​f​y​ ​e​x​p​ ​v​a​l​u​e​s​ ​f​o​r​ ​a​ ​s​p​e​c​i​f​i​e​d​ ​p​l​a​y​e​r
+			 */
+			DESCRIPTION: string
+			OPTIONS: {
+				AMOUNT: {
+					/**
+					 * a​m​o​u​n​t
+					 */
+					NAME: string
+					/**
+					 * T​h​e​ ​a​m​o​u​n​t​ ​t​o​ ​c​h​a​n​g​e​ ​(​p​o​s​i​t​i​v​e​ ​o​r​ ​n​e​g​a​t​i​v​e​)
+					 */
+					DESCRIPTION: string
+				}
+				DCTAG: {
+					/**
+					 * d​c​t​a​g
+					 */
+					NAME: string
+					/**
+					 * T​h​e​ ​p​l​a​y​e​r​'​s​ ​d​i​s​c​o​r​d​ ​t​a​g​ ​f​o​r​ ​r​e​f​e​r​e​n​c​e
+					 */
+					DESCRIPTION: string
+				}
+			}
+		}
 		PREFIX: {
 			/**
 			 * p​r​e​f​i​x
@@ -220,6 +252,38 @@ export type TranslationFunctions = {
 				 * [Click here]({link}) to invite me!
 				 */
 				DESCRIPTION: (arg: { link: unknown }) => LocalizedString
+			}
+		}
+		EXPMOD: {
+			/**
+			 * expmod
+			 */
+			NAME: () => LocalizedString
+			/**
+			 * Modify exp values for a specified player
+			 */
+			DESCRIPTION: () => LocalizedString
+			OPTIONS: {
+				AMOUNT: {
+					/**
+					 * amount
+					 */
+					NAME: () => LocalizedString
+					/**
+					 * The amount to change (positive or negative)
+					 */
+					DESCRIPTION: () => LocalizedString
+				}
+				DCTAG: {
+					/**
+					 * dctag
+					 */
+					NAME: () => LocalizedString
+					/**
+					 * The player's discord tag for reference
+					 */
+					DESCRIPTION: () => LocalizedString
+				}
 			}
 		}
 		PREFIX: {

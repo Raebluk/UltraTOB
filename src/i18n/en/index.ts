@@ -22,6 +22,20 @@ const en = {
 				DESCRIPTION: '[Click here]({link}) to invite me!',
 			},
 		},
+		EXPMOD: {
+			NAME: 'expmod',
+			DESCRIPTION: 'Modify exp values for a specified player',
+			OPTIONS: {
+				AMOUNT: {
+					NAME: 'amount',
+					DESCRIPTION: 'The amount to change (positive or negative)',
+				},
+				DCTAG: {
+					NAME: 'dctag',
+					DESCRIPTION: "The player's discord tag for reference",
+				},
+			},
+		},
 		PREFIX: {
 			NAME: 'prefix',
 			DESCRIPTION: 'Change the prefix of the bot.',
