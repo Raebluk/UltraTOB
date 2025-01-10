@@ -94,6 +94,16 @@ type RootTranslation = {
 					 */
 					DESCRIPTION: string
 				}
+				NOTE: {
+					/**
+					 * n​o​t​e
+					 */
+					NAME: string
+					/**
+					 * R​e​a​s​o​n​ ​f​o​r​ ​t​h​e​ ​e​x​p​ ​m​o​d​i​f​i​c​a​t​i​o​n
+					 */
+					DESCRIPTION: string
+				}
 			}
 		}
 		PREFIX: {
@@ -281,6 +291,16 @@ export type TranslationFunctions = {
 					NAME: () => LocalizedString
 					/**
 					 * The player's discord tag for reference
+					 */
+					DESCRIPTION: () => LocalizedString
+				}
+				NOTE: {
+					/**
+					 * note
+					 */
+					NAME: () => LocalizedString
+					/**
+					 * Reason for the exp modification
 					 */
 					DESCRIPTION: () => LocalizedString
 				}
