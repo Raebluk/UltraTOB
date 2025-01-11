@@ -38,6 +38,12 @@ export class Player extends CustomBaseEntity {
 
 export class PlayerRepository extends EntityRepository<Player> {
 
+	async findPlayer(filterQuery: object): Promise<Player | null> {
+		const player = await this.findOne(filterQuery)
+
+		return player
+	}
+
 	async addPlayer(user: DUser, guild: DGuild): Promise<Player> {
 		const player = new Player()
 		player.id = `${user.id}-${guild.id}` // Assuming a composite key
@@ -51,11 +57,11 @@ export class PlayerRepository extends EntityRepository<Player> {
 	}
 
 	async updatePlayerExp(filterQuery: object, expDelta: number): Promise<boolean> {
-		const player = await this.em.findOne(Player, filterQuery) || null
+		const player = await this.findPlayer(filterQuery)
 		if (!player)
 			return false
 		player.exp = player.exp + expDelta
-		await this.em.persistAndFlush(player)
+		this.em.persistAndFlush(player)
 
 		return true
 	}
