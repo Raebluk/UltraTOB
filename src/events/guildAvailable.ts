@@ -27,7 +27,7 @@ export default class InteractionCreateEvent {
 			const existingPlayer = await this.db.get(Player).findOne({ id: `${member.user.id}-${guild.id}` })
 			if (!existingPlayer) {
 				await syncUser(member.user)
-				this.db.get(Player).addPlayer(member.user, guild)
+				this.db.get(Player).addPlayer(member.user, guild).catch()
 			}
 			// TODO: check if the player has left the guild
 			// TODO: check if the player has update tag or other related info
