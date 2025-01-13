@@ -33,7 +33,7 @@ export class ValueChangeLog extends CustomBaseEntity {
 	note: string
 
 	@ManyToOne()
-	moderator: User
+	moderator: User | null
 
 }
 
@@ -43,7 +43,7 @@ export class ValueChangeLog extends CustomBaseEntity {
 
 export class ValueChangeLogRepository extends EntityRepository<ValueChangeLog> {
 
-	async insertLog(player: Player, admin: User, amount: number, type: 'exp' | 'silver' | 'unknown', note: string = ''): Promise<ValueChangeLog> {
+	async insertLog(player: Player, admin: User | null, amount: number, type: 'exp' | 'silver' | 'unknown', note: string = ''): Promise<ValueChangeLog> {
 		const log = new ValueChangeLog()
 		log.player = player
 		log.playerDcTag = player.dcTag
