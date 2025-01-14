@@ -47,27 +47,30 @@ export default class ExpModCommand {
 		client: Client,
 		{ localize }: InteractionData
 	) {
-		const guild = resolveGuild(interaction)
-		const guildEntity = await this.db.get(Guild).findOneOrFail({ id: guild?.id })
-		if (!guildEntity)
-			interaction.followUp({ content: 'Guild not found... Check database...' })
+		const userRepo = this.db.get(User)
+		const playerRepo = this.db.get(Player)
+		const guildRepo = this.db.get(Guild)
+		const valueChangeLogRepo = this.db.get(ValueChangeLog)
 
-		const expUpdated = await this.db.get(Player).updatePlayerExp({ dcTag, guild: guildEntity }, amount)
-		if (!expUpdated)
-			interaction.followUp({ content: 'Player not found...Contact admins...' })
-		else {
-			// create log
+		try {
+			const guild = resolveGuild(interaction)
+			const guildEntity = await guildRepo.findOneOrFail({ id: guild?.id })
+
+			const expUpdated = await playerRepo.updatePlayerExp({ dcTag, guild: guildEntity }, amount)
+			if (!expUpdated) {
+				return interaction.followUp({ content: `Player with tag ${dcTag} not found in guild ${guildEntity.id}. Please contact the admins.` })
+			}
+
 			const interactionUser = resolveUser(interaction)
-			const admin = await this.db.get(User).findOneOrFail({ id: interactionUser!.id })
-			const player = await this.db.get(Player).findPlayer({ dcTag, guild: guildEntity })
-			await this.db.get(ValueChangeLog).insertLog(
-				player!,
-				admin,
-				amount,
-				'exp',
-				note
-			)
-			interaction.followUp({ content: 'Modified Exp...' })
+			const admin = await userRepo.findOneOrFail({ id: interactionUser!.id })
+			const player = await playerRepo.findOneOrFail({ dcTag, guild: guildEntity })
+
+			await valueChangeLogRepo.insertLog(player!, admin!, amount, 'exp', note)
+			// TODO: add log
+			await interaction.followUp({ content: 'Experience points modified successfully.' })
+		} catch (error) {
+			console.error('Error modifying experience points:', error) // TODO: use logger
+			await interaction.followUp({ content: 'An error occurred while modifying experience points. Please try again later.' })
 		}
 	}
 
