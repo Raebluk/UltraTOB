@@ -29,6 +29,19 @@ export class DailyCounter extends CustomBaseEntity {
 	@Property()
 	voiceExp: number = 90
 
+	resetCounter() {
+		this.resetChatExp()
+		this.resetVoiceExp()
+	}
+
+	resetChatExp() {
+		this.chatExp = 10
+	}
+
+	resetVoiceExp() {
+		this.voiceExp = 90
+	}
+
 }
 
 // ===========================================
@@ -61,6 +74,16 @@ export class DailyCounterRepository extends EntityRepository<DailyCounter> {
 		await this.em.persistAndFlush(counter)
 
 		return valueChanged
+	}
+
+	async resetAllCounters() {
+		// TODO: not using bulk update
+		// cuz we treat different counter differently in next patch
+		const allCounters = await this.findAll()
+		for (const counter of allCounters) {
+			counter.resetCounter()
+		}
+		await this.em.persistAndFlush(allCounters)
 	}
 
 }

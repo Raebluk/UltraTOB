@@ -1,7 +1,7 @@
 import { ArgsOf, Client } from 'discordx'
 
-import { Discord, Injectable, On } from '@/decorators'
-import { Player } from '@/entities'
+import { Discord, Injectable, On, Schedule } from '@/decorators'
+import { DailyCounter, Player } from '@/entities'
 import { Database, Logger, Stats } from '@/services'
 import { syncGuild, syncUser } from '@/utils/functions'
 
@@ -32,6 +32,12 @@ export default class InteractionCreateEvent {
 			// TODO: check if the player has left the guild
 			// TODO: check if the player has update tag or other related info
 		}
+	}
+
+	@Schedule('55 23 * * *') // every day @ 23:55 PM
+	async resetAllDailyCounters() {
+		this.db.get(DailyCounter).resetAllCounters()
+		this.logger.log('All daily counters have been reset.', 'info')
 	}
 
 }
