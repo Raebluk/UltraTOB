@@ -7,7 +7,7 @@ import { syncGuild, syncUser } from '@/utils/functions'
 
 @Discord()
 @Injectable()
-export default class InteractionCreateEvent {
+export default class GuildAvailableEvent {
 
 	constructor(
 		private stats: Stats,

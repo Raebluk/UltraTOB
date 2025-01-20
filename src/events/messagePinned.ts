@@ -3,7 +3,7 @@ import { Message } from 'discord.js'
 import { Discord, On } from '@/decorators'
 
 @Discord()
-export default class messagePinnedEvent {
+export default class MessagePinnedEvent {
 
 	@On('messagePinned')
 	async messagePinnedHandler(
