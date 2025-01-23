@@ -5,7 +5,7 @@ import { Client } from 'discordx'
 import { Discord, Injectable, Slash, SlashOption } from '@/decorators'
 import { Guild, Player, User, ValueChangeLog } from '@/entities'
 import { Guard, UserPermissions } from '@/guards'
-import { Database } from '@/services'
+import { Database, Logger } from '@/services'
 import { resolveGuild, resolveUser } from '@/utils/functions'
 
 @Discord()
@@ -14,7 +14,8 @@ import { resolveGuild, resolveUser } from '@/utils/functions'
 export default class ExpModCommand {
 
 	constructor(
-		private db: Database
+		private db: Database,
+		private logger: Logger
 	) {}
 
 	@Slash({ name: 'expmod' })
@@ -66,11 +67,11 @@ export default class ExpModCommand {
 			const player = await playerRepo.findOneOrFail({ dcTag, guild: guildEntity })
 
 			await valueChangeLogRepo.insertLog(player!, admin!, amount, 'exp', note)
-			// TODO: add log
-			await interaction.followUp({ content: 'Experience points modified successfully.' })
+			const infoStr = `${interactionUser?.username} just changed ${player.dcTag}'s exp by ${amount}`
+			this.logger.log(infoStr, 'info', true, null) // TODO: log to channel if required.
+			await interaction.followUp({ content: infoStr })
 		} catch (error) {
-			console.error('Error modifying experience points:', error) // TODO: use logger
-			await interaction.followUp({ content: 'An error occurred while modifying experience points. Please try again later.' })
+			await interaction.followUp({ content: 'An error occurred while modifying exp points. Talk to the Allmighty Kulbear.' })
 		}
 	}
 
