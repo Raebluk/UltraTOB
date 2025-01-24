@@ -6,6 +6,7 @@ export const generalConfig: GeneralConfigType = {
 	description: '', // the description of your bot
 	defaultLocale: 'en', // default language of the bot, must be a valid locale
 	ownerId: env.BOT_OWNER_ID,
+	botId: env.BOT_ID,
 	timezone: 'America/New_York', // default TimeZone set to New York time to well format and localize dates (logs, stats, etc)
 
 	simpleCommandsPrefix: '!', // default prefix for simple command messages (old way to do commands on discord)
@@ -36,11 +37,15 @@ export const generalConfig: GeneralConfigType = {
 
 }
 
+export const playerConfig = {
+	expDoubleLimit: 5300, // the limit of exp to double the daily exp
+}
+
 // global colors
 export const colorsConfig = {
 	primary: '#2F3136',
 	success: '#43B581',
 	error: '#F04747',
-	warning: '#FAA61A',
+	warn: '#FAA61A',
 	info: '#7289DA',
 }

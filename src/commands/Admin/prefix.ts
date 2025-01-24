@@ -28,10 +28,11 @@ export default class PrefixCommand {
 			name: 'prefix',
 			localizationSource: 'COMMANDS.PREFIX.OPTIONS.PREFIX',
 			type: ApplicationCommandOptionType.String,
-		}) prefix: string | undefined,
-			interaction: CommandInteraction,
-			client: Client,
-			{ localize }: InteractionData
+		})
+		prefix: string | undefined,
+		interaction: CommandInteraction,
+		client: Client,
+		{ localize }: InteractionData
 	) {
 		const guild = resolveGuild(interaction)
 		const guildData = await this.db.get(Guild).findOne({ id: guild?.id || '' })

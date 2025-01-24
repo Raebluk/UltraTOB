@@ -4,6 +4,7 @@ type GeneralConfigType = {
 	description: string
 	defaultLocale: import('@/i18n').Locales
 	ownerId: string
+	botId: string
 	timezone: string
 	automaticUploadImagesToImgur: boolean
 
