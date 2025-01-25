@@ -2,6 +2,8 @@ import { Entity, EntityRepositoryType, ManyToOne, PrimaryKey, Property } from '@
 import { AnyString } from '@mikro-orm/core/typings'
 import { EntityRepository } from '@mikro-orm/sqlite'
 
+import { playerConfig } from '@/configs'
+
 import { CustomBaseEntity } from './BaseEntity'
 import { Player } from './Player'
 
@@ -29,17 +31,17 @@ export class DailyCounter extends CustomBaseEntity {
 	@Property()
 	voiceExp: number = 90
 
-	resetCounter() {
-		this.resetChatExp()
-		this.resetVoiceExp()
+	resetCounter(factor: number = 1) {
+		this.resetChatExp(factor)
+		this.resetVoiceExp(factor)
 	}
 
-	resetChatExp() {
-		this.chatExp = 10
+	resetChatExp(factor: number = 1) {
+		this.chatExp = 10 * factor
 	}
 
-	resetVoiceExp() {
-		this.voiceExp = 90
+	resetVoiceExp(factor: number = 1) {
+		this.voiceExp = 90 * factor
 	}
 
 }
@@ -54,6 +56,7 @@ export class DailyCounterRepository extends EntityRepository<DailyCounter> {
 		const counter = new DailyCounter()
 		counter.player = player
 		counter.playerDcTag = player.dcTag
+		counter.resetCounter(player.exp >= playerConfig.expDoubleLimit ? 2 : 1)
 		await this.em.persistAndFlush(counter)
 
 		return counter
@@ -77,11 +80,10 @@ export class DailyCounterRepository extends EntityRepository<DailyCounter> {
 	}
 
 	async resetAllCounters() {
-		// TODO: not using bulk update
-		// cuz we treat different counter differently in next patch
+		// reset all counters
 		const allCounters = await this.findAll()
 		for (const counter of allCounters) {
-			counter.resetCounter()
+			counter.resetCounter(counter.player.exp >= playerConfig.expDoubleLimit ? 2 : 1)
 		}
 		await this.em.persistAndFlush(allCounters)
 	}
