@@ -10,7 +10,7 @@ export const generalConfig: GeneralConfigType = {
 	timezone: 'America/New_York', // default TimeZone set to New York time to well format and localize dates (logs, stats, etc)
 
 	simpleCommandsPrefix: '!', // default prefix for simple command messages (old way to do commands on discord)
-	automaticDeferring: true, // enable or not the automatic deferring of the replies of the bot on the command interactions
+	automaticDeferring: false, // enable or not the automatic deferring of the replies of the bot on the command interactions
 
 	// useful links
 	links: {
@@ -39,6 +39,16 @@ export const generalConfig: GeneralConfigType = {
 
 export const playerConfig = {
 	expDoubleLimit: 5300, // the limit of exp to double the daily exp
+}
+
+// TODO: move to db
+export const yzConfig = {
+	channels: {
+		userCommandAllowed: ['1335948089768415357'],
+	},
+	roles: {
+		playerQualifiedRequired: ['1217468916540903484', '1215766168674238524'],
+	},
 }
 
 // global colors
