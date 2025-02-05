@@ -30,6 +30,10 @@ const en = {
 					NAME: 'amount',
 					DESCRIPTION: 'The amount to change (positive or negative)',
 				},
+				TYPE: {
+					NAME: 'type',
+					DESCRIPTION: '"exp" or "silver"',
+				},
 				DCTAG: {
 					NAME: 'dctag',
 					DESCRIPTION: "The player's discord tag for reference",

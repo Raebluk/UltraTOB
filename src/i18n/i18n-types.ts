@@ -7,9 +7,6 @@ export type BaseLocale = 'en'
 
 export type Locales =
 	| 'en'
-	| 'fr'
-	| 'ru'
-	| 'uk'
 
 export type Translation = RootTranslation
 
@@ -81,6 +78,16 @@ type RootTranslation = {
 					NAME: string
 					/**
 					 * T​h​e​ ​a​m​o​u​n​t​ ​t​o​ ​c​h​a​n​g​e​ ​(​p​o​s​i​t​i​v​e​ ​o​r​ ​n​e​g​a​t​i​v​e​)
+					 */
+					DESCRIPTION: string
+				}
+				TYPE: {
+					/**
+					 * t​y​p​e
+					 */
+					NAME: string
+					/**
+					 * "​e​x​p​"​ ​o​r​ ​"​s​i​l​v​e​r​"
 					 */
 					DESCRIPTION: string
 				}
@@ -281,6 +288,16 @@ export type TranslationFunctions = {
 					NAME: () => LocalizedString
 					/**
 					 * The amount to change (positive or negative)
+					 */
+					DESCRIPTION: () => LocalizedString
+				}
+				TYPE: {
+					/**
+					 * type
+					 */
+					NAME: () => LocalizedString
+					/**
+					 * "exp" or "silver"
 					 */
 					DESCRIPTION: () => LocalizedString
 				}
