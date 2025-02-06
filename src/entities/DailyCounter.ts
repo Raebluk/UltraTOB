@@ -1,6 +1,4 @@
-import { Entity, EntityRepositoryType, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core'
-import { AnyString } from '@mikro-orm/core/typings'
-import { EntityRepository } from '@mikro-orm/sqlite'
+import { Entity, EntityRepository, EntityRepositoryType, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core'
 
 import { playerConfig } from '@/configs'
 

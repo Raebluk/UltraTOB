@@ -1,5 +1,4 @@
-import { Entity, EntityRepositoryType, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core'
-import { EntityRepository } from '@mikro-orm/sqlite'
+import { Entity, EntityRepository, EntityRepositoryType, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core'
 import { Guild as DGuild, User as DUser } from 'discord.js'
 
 import { CustomBaseEntity } from './BaseEntity'
@@ -30,6 +29,9 @@ export class Player extends CustomBaseEntity {
 	@Property()
     exp: number = 0
 
+	@Property()
+	sliver: number = 0
+
 }
 
 // ===========================================
@@ -50,10 +52,13 @@ export class PlayerRepository extends EntityRepository<Player> {
 		return player
 	}
 
-	async updatePlayerExp(filterQuery: object, expDelta: number): Promise<boolean> {
-		const player = await this.findOneOrFail(filterQuery)
+	async updatePlayerValue(filterQuery: object, valueDelta: number, type: 'exp' | 'silver'): Promise<boolean> {
+		const player = await this.findOne(filterQuery)
 		if (!player) return false
-		player.exp += expDelta
+
+		if (type === 'silver') player.sliver += valueDelta
+		if (type === 'exp') player.exp += valueDelta
+
 		await this.em.persistAndFlush(player)
 
 		return true

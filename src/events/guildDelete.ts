@@ -11,7 +11,7 @@ export default class GuildDeleteEvent {
 		[oldGuild]: ArgsOf<'guildDelete'>,
 		client: Client
 	) {
-		await syncGuild(oldGuild.id, client)
+		// await syncGuild(oldGuild.id, client)
 	}
 
 }

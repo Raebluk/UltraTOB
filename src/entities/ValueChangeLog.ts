@@ -1,5 +1,4 @@
-import { Entity, EntityRepositoryType, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core'
-import { EntityRepository } from '@mikro-orm/sqlite'
+import { Entity, EntityRepository, EntityRepositoryType, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core'
 
 import { CustomBaseEntity } from './BaseEntity'
 import { Player } from './Player'
@@ -43,11 +42,11 @@ export class ValueChangeLog extends CustomBaseEntity {
 
 export class ValueChangeLogRepository extends EntityRepository<ValueChangeLog> {
 
-	async insertLog(player: Player, admin: User, amount: number, type: 'exp' | 'silver' | 'unknown', note: string = ''): Promise<ValueChangeLog> {
+	async insertLog(player: Player, moderator: User, amount: number, type: 'exp' | 'silver' | 'unknown', note: string = ''): Promise<ValueChangeLog> {
 		const log = new ValueChangeLog()
 		log.player = player
 		log.playerDcTag = player.dcTag
-		log.moderator = admin
+		log.moderator = moderator
 		log.amount = amount
 		log.type = type
 		log.note = note
