@@ -3,5 +3,16 @@ type DatabaseSize = {
 	backups: number | null
 }
 
-type DatabaseDriver = import('@mikro-orm/sqlite').SqliteDriver
-type DatabaseEntityManager = import('@mikro-orm/sqlite').SqlEntityManager
+// type DatabaseConfigs = {
+// 	sqlite: {
+// 		driver: import('@mikro-orm/sqlite').SqliteDriver
+// 		entityManager: import('@mikro-orm/sqlite').SqlEntityManager
+// 	}
+// 	postgresql: {
+// 		driver: import('@mikro-orm/postgresql').PostgreSqlDriver
+// 		entityManager: import('@mikro-orm/postgresql').SqlEntityManager
+// 	}
+// }
+
+type DatabaseDriver = import('@mikro-orm/postgresql').PostgreSqlDriver
+type DatabaseEntityManager = import('@mikro-orm/postgresql').SqlEntityManager

@@ -68,11 +68,11 @@ export async function syncGuild(guildId: string, client: Client) {
 	} else if (!fetchedGuild) {
 		// guild is deleted but still exists in the database
 
-		guildData.deleted = true
-		await db.em.persistAndFlush(guildData)
+		// guildData.deleted = true
+		// await db.em.persistAndFlush(guildData)
 
-		stats.register('DELETE_GUILD', guildId)
-		logger.logGuild('DELETE_GUILD', guildId)
+		// stats.register('DELETE_GUILD', guildId)
+		// logger.logGuild('DELETE_GUILD', guildId)
 	}
 }
 
