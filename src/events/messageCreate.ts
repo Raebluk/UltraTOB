@@ -26,14 +26,14 @@ export default class MessageCreateEvent {
 		const playerRepo = this.db.get(Player)
 		const dailyCounterRepo = this.db.get(DailyCounter)
 		const playerId = `${message.member?.id}-${message.guild?.id}`
-		const player = await playerRepo.findOneOrFail({ id: playerId })
+		const player = await playerRepo.findOne({ id: playerId })
 
 		// player not found means this is a private message not message in any guild
 		if (!player) return
 
 		// update player exp after count real change value from counter
 		const valueChanged = await dailyCounterRepo.updateCounter(player, 10, 'chat')
-		await playerRepo.updatePlayerExp({ id: player.id }, valueChanged)
+		await playerRepo.updatePlayerValue({ id: player.id }, valueChanged, 'exp')
 		await client.executeCommand(message, false)
 	}
 
