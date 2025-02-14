@@ -1,17 +1,14 @@
-import { Guild as DGuild, User as DUser } from 'discord.js'
 import { ArgsOf, Client } from 'discordx'
 
 import { generalConfig, playerConfig } from '@/configs'
 import { Discord, Injectable, On, Schedule } from '@/decorators'
 import { DailyCounter, Player, User, ValueChangeLog } from '@/entities'
 import { Database, Logger } from '@/services'
-import { syncGuild, syncUser } from '@/utils/functions'
+import { resolveDependency, syncGuild, syncUser } from '@/utils/functions'
 
 @Discord()
 @Injectable()
 export default class GuildAvailableEvent {
-
-	private currentGuild: DGuild
 
 	constructor(
 		private logger: Logger,
@@ -23,7 +20,6 @@ export default class GuildAvailableEvent {
 		[guild]: ArgsOf<'guildAvailable'>,
 		client: Client
 	) {
-		this.currentGuild = guild
 		syncGuild(guild.id, client)
 
 		const members = await guild.members.fetch()
@@ -70,20 +66,26 @@ export default class GuildAvailableEvent {
 	}
 
 	// every 5 minutes
-	@Schedule('0 */5 * * *') // every 5 minutes
+	@Schedule('*/5 * * * *') // every 5 minutes
 	async scanVoiceChannel() {
+		const client = await resolveDependency(Client)
+
 		const playerRepo = this.db.get(Player)
 		const dailyCounterRepo = this.db.get(DailyCounter)
-		const channels = await this.currentGuild.channels.fetch()
-		// Filter out only voice-based channels
-		const voiceChannels = channels.filter(channel => channel?.isVoiceBased())
+		// Fetch all guilds from client
+		const guilds = client.guilds.cache
 
-		for (const channel of voiceChannels.values()) {
-			for (const member of channel!.members) {
-				const player = await playerRepo.findOne({ id: `${member[1].id}-${this.currentGuild.id}` })
-				if (player) {
-					const valueChanged = await dailyCounterRepo.updateCounter(player, 1, 'voice')
-					await playerRepo.updatePlayerExp({ id: player.id }, valueChanged)
+		for (const guild of guilds.values()) {
+			const channels = await guild.channels.fetch()
+			// Filter out only voice-based channels
+			const voiceChannels = channels.filter(channel => channel?.isVoiceBased())
+			for (const channel of voiceChannels.values()) {
+				for (const member of channel!.members) {
+					const player = await playerRepo.findOne({ id: `${member[1].id}-${guild.id}` })
+					if (player) {
+						const valueChanged = await dailyCounterRepo.updateCounter(player, 1, 'voice')
+						await playerRepo.updatePlayerValue({ id: player.id }, valueChanged, 'exp')
+					}
 				}
 			}
 		}
