@@ -1,11 +1,25 @@
 import { Category } from '@discordx/utilities'
-import { AttachmentBuilder, CommandInteraction, EmbedBuilder, GuildMemberRoleManager } from 'discord.js'
+import {
+	AttachmentBuilder,
+	CommandInteraction,
+	EmbedBuilder,
+	GuildMemberRoleManager,
+} from 'discord.js'
 
 import { yzConfig } from '@/configs'
 import { Discord, Injectable, Slash } from '@/decorators'
-import { DailyCounter, DailyCounterRepository, Guild, GuildRepository, Player, PlayerRepository, User, UserRepository } from '@/entities'
+import {
+	DailyCounter,
+	DailyCounterRepository,
+	Guild,
+	GuildRepository,
+	Player,
+	PlayerRepository,
+	User,
+	UserRepository,
+} from '@/entities'
 import { Guard } from '@/guards'
-import { Database, Stats } from '@/services'
+import { Database } from '@/services'
 import { resolveGuild, resolveUser } from '@/utils/functions'
 
 @Discord()
@@ -19,13 +33,12 @@ export default class UserCommand {
 	private counterRepo: DailyCounterRepository
 
 	constructor(
-		private stats: Stats,
 		private db: Database
 	) {
-		this.userRepo = db.get(User)
-		this.playerRepo = db.get(Player)
-		this.guildRepo = db.get(Guild)
-		this.counterRepo = db.get(DailyCounter)
+		this.userRepo = this.db.get(User)
+		this.playerRepo = this.db.get(Player)
+		this.guildRepo = this.db.get(Guild)
+		this.counterRepo = this.db.get(DailyCounter)
 	}
 
 	@Slash({

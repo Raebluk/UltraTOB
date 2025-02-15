@@ -1,13 +1,28 @@
 import { Category } from '@discordx/utilities'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { ActionRowBuilder, CommandInteraction, ModalBuilder, ModalSubmitInteraction, TextInputBuilder,	TextInputStyle } from 'discord.js'
+import {
+	ActionRowBuilder,
+	CommandInteraction,
+	ModalBuilder,
+	ModalSubmitInteraction,
+	TextInputBuilder,
+	TextInputStyle,
+} from 'discord.js'
 import { ModalComponent } from 'discordx'
 
 import { Discord, Injectable, Slash, SlashGroup } from '@/decorators'
-import { Guild, GuildRepository, Player, PlayerRepository, Quest, QuestRepository, User } from '@/entities'
+import {
+	Guild,
+	GuildRepository,
+	Player,
+	PlayerRepository,
+	Quest,
+	QuestRepository,
+	User,
+} from '@/entities'
 import { Guard, UserPermissions } from '@/guards'
-import { Database, Stats } from '@/services'
+import { Database } from '@/services'
 import { resolveGuild, resolveUser } from '@/utils/functions'
 
 dayjs.extend(relativeTime)
@@ -25,12 +40,11 @@ export default class QuestPublishCommand {
 	private questRepo: QuestRepository
 
 	constructor(
-		private stats: Stats,
 		private db: Database
 	) {
-		this.playerRepo = db.get(Player)
-		this.guildRepo = db.get(Guild)
-		this.questRepo = db.get(Quest)
+		this.playerRepo = this.db.get(Player)
+		this.guildRepo = this.db.get(Guild)
+		this.questRepo = this.db.get(Quest)
 	}
 
 	@Slash({
