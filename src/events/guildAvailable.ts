@@ -2,7 +2,16 @@ import { ArgsOf, Client } from 'discordx'
 
 import { generalConfig, playerConfig } from '@/configs'
 import { Discord, Injectable, On, Schedule } from '@/decorators'
-import { DailyCounter, Player, User, ValueChangeLog } from '@/entities'
+import {
+	DailyCounter,
+	DailyCounterRepository,
+	Player,
+	PlayerRepository,
+	User,
+	UserRepository,
+	ValueChangeLog,
+	ValueChangeLogRepository,
+} from '@/entities'
 import { Database, Logger } from '@/services'
 import { resolveDependency, syncGuild, syncUser } from '@/utils/functions'
 
@@ -10,10 +19,20 @@ import { resolveDependency, syncGuild, syncUser } from '@/utils/functions'
 @Injectable()
 export default class GuildAvailableEvent {
 
+	private dailyCounterRepo: DailyCounterRepository
+	private playerRepo: PlayerRepository
+	private userRepo: UserRepository
+	private valueChangeLogRepo: ValueChangeLogRepository
+
 	constructor(
 		private logger: Logger,
 		private db: Database
-	) {}
+	) {
+		this.dailyCounterRepo = this.db.get(DailyCounter)
+		this.playerRepo = this.db.get(Player)
+		this.valueChangeLogRepo = this.db.get(ValueChangeLog)
+		this.userRepo = this.db.get(User)
+	}
 
 	@On('guildAvailable')
 	async guildAvailableHandler(
@@ -24,10 +43,18 @@ export default class GuildAvailableEvent {
 
 		const members = await guild.members.fetch()
 		for (const member of members.values()) {
-			const existingPlayer = await this.db.get(Player).findOne({ id: `${member.user.id}-${guild.id}` })
+			const existingPlayer = await this.playerRepo.findOne({ id: `${member.user.id}-${guild.id}` })
 			if (!existingPlayer) {
 				await syncUser(member.user)
-				this.db.get(Player).addPlayer(member.user, guild).catch()
+				const player = await this.playerRepo.addPlayer(member.user, guild).catch()
+				await this.dailyCounterRepo.initCounter(player)
+			} else {
+				// check whether there is a counter for the player
+				const counter = await this.dailyCounterRepo.findOne({ player: existingPlayer })
+				if (!counter) {
+					this.logger.log('Not found daily counter for the player, initializing...', 'info')
+					await this.dailyCounterRepo.initCounter(existingPlayer)
+				}
 			}
 			// TODO: check if the player has left the guild
 			// TODO: check if the player has update tag or other related info
@@ -36,37 +63,32 @@ export default class GuildAvailableEvent {
 
 	@Schedule('55 23 * * *') // everyday at 23:55
 	async resetAllDailyCounters() {
-		const dailyCounterRepo = this.db.get(DailyCounter)
-		const valueChangeLogRepo = this.db.get(ValueChangeLog)
-		const userRepo = this.db.get(User)
-		const playerRepo = this.db.get(Player)
-
 		// Use bot as the moderator, provided id is bot id
-		const moderator = await userRepo.findOneOrFail({ id: generalConfig.botId })
+		const moderator = await this.userRepo.findOneOrFail({ id: generalConfig.botId })
 
 		// Fetch all daily counters
-		const counters = await dailyCounterRepo.findAll()
+		const counters = await this.dailyCounterRepo.findAll()
 
 		const currentDate = new Date().toISOString().split('T')[0]
 		// Iterate through each counter and reset them while logging the value change
 		for (const counter of counters) {
 			const playerId = counter.player.id
-			const player = await playerRepo.findOneOrFail({ id: playerId })
+			const player = await this.playerRepo.findOneOrFail({ id: playerId })
 			const playerExpDailyLimit = player.exp > playerConfig.expDoubleLimit ? 200 : 100
 			const valueChanged = playerExpDailyLimit - (counter.chatExp + counter.voiceExp)
 			// Log the experience change
-			await valueChangeLogRepo.insertLog(player, moderator, valueChanged, 'exp', `Daily Reset by TOB | ${currentDate}`)
+			await this.valueChangeLogRepo.insertLog(player, moderator, valueChanged, 'exp', `Daily Reset by TOB | ${currentDate}`)
 		}
 
 		// Reset all daily counters
-		await dailyCounterRepo.resetAllCounters()
+		await this.dailyCounterRepo.resetAllCounters()
 
 		// Log the reset action
 		this.logger.log('All daily counters have been reset.', 'info')
 	}
 
 	// every 5 minutes
-	@Schedule('*/5 * * * *') // every 5 minutes
+	@Schedule('0 */5 * * *') // every 5 minutes
 	async scanVoiceChannel() {
 		const client = await resolveDependency(Client)
 
