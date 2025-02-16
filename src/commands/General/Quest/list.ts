@@ -1,13 +1,30 @@
 import { Category } from '@discordx/utilities'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, CommandInteraction, EmbedBuilder, MessageActionRowComponentBuilder } from 'discord.js'
+import {
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonInteraction,
+	ButtonStyle,
+	CommandInteraction,
+	EmbedBuilder,
+	MessageActionRowComponentBuilder,
+} from 'discord.js'
 import { ButtonComponent } from 'discordx'
 
+import { yzConfig } from '@/configs'
 import { Discord, Injectable, Slash, SlashGroup } from '@/decorators'
-import { Player, PlayerRepository, Quest, QuestRepository, User } from '@/entities'
+import {
+	Player,
+	PlayerRepository,
+	Quest,
+	QuestRecord,
+	QuestRecordRepository,
+	QuestRepository,
+} from '@/entities'
 import { Guard } from '@/guards'
-import { Database, Stats } from '@/services'
+import { Database, Logger } from '@/services'
+import { resolveGuild, resolveUser } from '@/utils/functions'
 
 dayjs.extend(relativeTime)
 
@@ -21,16 +38,17 @@ export default class QuestListCommand {
 
 	private playerRepo: PlayerRepository
 	private questRepo: QuestRepository
+	private questRecordRepo: QuestRecordRepository
 	private currentQuestIdx: number
 	private quests: Quest[]
 
 	constructor(
-		private stats: Stats,
-		private db: Database
+		private db: Database,
+		private logger: Logger
 	) {
-		this.playerRepo = db.get(Player)
-		this.questRepo = db.get(Quest)
-		this.currentQuestIdx = 0
+		this.playerRepo = this.db.get(Player)
+		this.questRepo = this.db.get(Quest)
+		this.questRecordRepo = this.db.get(QuestRecord)
 	}
 
 	@Slash({
@@ -40,6 +58,7 @@ export default class QuestListCommand {
 	@SlashGroup('quest')
 	@Guard()
 	async list(interaction: CommandInteraction) {
+		this.currentQuestIdx = 0
 		// find all quests that expire date is greater than now
 		this.quests = await this.questRepo.find({
 			expireDate: {
@@ -135,7 +154,27 @@ export default class QuestListCommand {
 
 	@ButtonComponent({ id: 'accept-quest' })
 	async handleAcceptQuestButton(interaction: ButtonInteraction) {
-		const currentQuest = this.quests[this.currentQuestIdx]
+		const user = resolveUser(interaction)
+		const guild = resolveGuild(interaction)
+
+		const player = await this.playerRepo.findOneOrFail({ id: `${user!.id}-${guild!.id}` })
+		const questRecords = await this.questRecordRepo.find({ taker: player, questEnded: false })
+		// check if having other quests
+		if (questRecords.length > 0) {
+			return interaction.reply({
+				content: '你已经有一个任务在进行中了，请先完成或者放弃任务后再接受新的任务。',
+				ephemeral: true,
+			})
+		} else {
+			const currentQuest = this.quests[this.currentQuestIdx]
+			this.questRecordRepo.insertQuestRecord(currentQuest, player)
+			this.logger.log(`<@${player.user.id}> 已经接受了任务【${currentQuest.name}】`, 'info', true, yzConfig.channels.missionBroadcastChannel)
+
+			return interaction.reply({
+				content: `任务【${currentQuest.name}】现在开始咯！`,
+				ephemeral: true,
+			})
+		}
 	}
 
 	@ButtonComponent({ id: 'next-quest' })
