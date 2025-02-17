@@ -77,7 +77,7 @@ export default class GuildAvailableEvent {
 			const playerExpDailyLimit = player.exp > playerConfig.expDoubleLimit ? 200 : 100
 			const valueChanged = playerExpDailyLimit - (counter.chatExp + counter.voiceExp)
 			// Log the experience change
-			await this.valueChangeLogRepo.insertLog(player, moderator, valueChanged, 'exp', `Daily Reset by TOB | ${currentDate}`)
+			if (valueChanged > 0) await this.valueChangeLogRepo.insertLog(player, moderator, valueChanged, 'exp', `Daily Reset by TOB | ${currentDate}`)
 		}
 
 		// Reset all daily counters
