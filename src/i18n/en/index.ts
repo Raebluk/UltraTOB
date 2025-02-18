@@ -38,6 +38,10 @@ const en = {
 					NAME: 'dctag',
 					DESCRIPTION: "The player's discord tag for reference",
 				},
+				DCTAGS: {
+					NAME: 'dctags',
+					DESCRIPTION: "The list of player's discord tags",
+				},
 				NOTE: {
 					NAME: 'note',
 					DESCRIPTION: 'Reason for the exp modification',

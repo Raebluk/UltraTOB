@@ -101,6 +101,16 @@ type RootTranslation = {
 					 */
 					DESCRIPTION: string
 				}
+				DCTAGS: {
+					/**
+					 * d​c​t​a​g​s
+					 */
+					NAME: string
+					/**
+					 * T​h​e​ ​l​i​s​t​ ​o​f​ ​p​l​a​y​e​r​'​s​ ​d​i​s​c​o​r​d​ ​t​a​g​s
+					 */
+					DESCRIPTION: string
+				}
 				NOTE: {
 					/**
 					 * n​o​t​e
@@ -308,6 +318,16 @@ export type TranslationFunctions = {
 					NAME: () => LocalizedString
 					/**
 					 * The player's discord tag for reference
+					 */
+					DESCRIPTION: () => LocalizedString
+				}
+				DCTAGS: {
+					/**
+					 * dctags
+					 */
+					NAME: () => LocalizedString
+					/**
+					 * The list of player's discord tags
 					 */
 					DESCRIPTION: () => LocalizedString
 				}
