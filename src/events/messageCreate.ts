@@ -1,7 +1,12 @@
 import { ArgsOf, Client } from 'discordx'
 
 import { Discord, Guard, Injectable, On } from '@/decorators'
-import { DailyCounter, Player } from '@/entities'
+import {
+	DailyCounter,
+	DailyCounterRepository,
+	Player,
+	PlayerRepository,
+} from '@/entities'
 import { Maintenance } from '@/guards'
 import { Database } from '@/services'
 
@@ -9,9 +14,15 @@ import { Database } from '@/services'
 @Injectable()
 export default class MessageCreateEvent {
 
+	private playerRepo: PlayerRepository
+	private dailyCounterRepo: DailyCounterRepository
+
 	constructor(
 		private db: Database
-	) {}
+	) {
+		this.playerRepo = this.db.get(Player)
+		this.dailyCounterRepo = this.db.get(DailyCounter)
+	}
 
 	@On('messageCreate')
 	@Guard(
@@ -22,19 +33,22 @@ export default class MessageCreateEvent {
 		client: Client
 	) {
 		if (message.author.bot) return
+		// accumulate exp for text message
+		this.onMessageCreateAccumulateDailyTextExp(message)
 
-		const playerRepo = this.db.get(Player)
-		const dailyCounterRepo = this.db.get(DailyCounter)
+		await client.executeCommand(message, false)
+	}
+
+	async onMessageCreateAccumulateDailyTextExp(message: any) {
 		const playerId = `${message.member?.id}-${message.guild?.id}`
-		const player = await playerRepo.findOne({ id: playerId })
+		const player = await this.playerRepo.findOne({
+			id: playerId,
+		})
 
-		// player not found means this is a private message not message in any guild
 		if (!player) return
 
-		// update player exp after count real change value from counter
-		const valueChanged = await dailyCounterRepo.updateCounter(player, 10, 'chat')
-		await playerRepo.updatePlayerValue({ id: player.id }, valueChanged, 'exp')
-		await client.executeCommand(message, false)
+		const valueChanged = await this.dailyCounterRepo.updateCounter(player, 10, 'chat')
+		await this.playerRepo.updatePlayerValue({ id: player.id }, valueChanged, 'exp')
 	}
 
 }
