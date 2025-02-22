@@ -1,28 +1,23 @@
 import { Entity, EntityRepository, EntityRepositoryType, PrimaryKey, Property } from '@mikro-orm/core'
 
+import { CustomBaseEntity } from './BaseEntity'
 // ===========================================
 // ================= Entity ==================
 // ===========================================
 
-@Entity({ repository: () => StatRepository })
-export class Stat {
+@Entity({ repository: () => MessageRepository })
+export class Message extends CustomBaseEntity {
 
-	[EntityRepositoryType]?: StatRepository
+	[EntityRepositoryType]?: MessageRepository
 
 	@PrimaryKey()
-    id: number
+    id!: string
 
 	@Property()
-    type!: string
+    channel!: string
 
 	@Property()
     value: string = ''
-
-	@Property({ type: 'json', nullable: true })
-    additionalData?: any
-
-	@Property()
-    createdAt: Date = new Date()
 
 }
 
@@ -30,6 +25,6 @@ export class Stat {
 // =========== Custom Repository =============
 // ===========================================
 
-export class StatRepository extends EntityRepository<Stat> {
+export class MessageRepository extends EntityRepository<Message> {
 
 }
