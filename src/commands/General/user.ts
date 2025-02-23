@@ -56,6 +56,7 @@ export default class UserCommand {
 			})
 		}
 
+		await interaction.deferReply()
 		const userNickname = (interaction.member as any)?.nickname || interaction.user.globalName || interaction.user.username
 
 		const userTag = interaction.user.tag
@@ -67,9 +68,8 @@ export default class UserCommand {
 
 		const playerProfile = await this.playerRepo.findOneOrFail({ user: userEntity, guild: guildEntity })
 		if (!playerProfile) {
-			interaction.followUp({
+			interaction.editReply({
 				content: `不可能！绝对不可能！@${userTag} 的资料竟然消失在了虚空之中...`,
-				ephemeral: false,
 			})
 		}
 
@@ -105,9 +105,8 @@ export default class UserCommand {
 		})
 
 		if (serverResponse.status !== 200) {
-			return interaction.reply({
+			return interaction.editReply({
 				content: 'TOB 费了九牛二虎之力也没有找到你的信息。请联系管理员或稍后再试！',
-				ephemeral: false,
 			})
 		}
 
@@ -117,9 +116,8 @@ export default class UserCommand {
 			? 'TOB 刚刚在堆积如山的资料中翻出了你的档案...'
 			: 'o|>_<|o 根据资料显示，你已有的数据保存完好，但你需要完成初始任务来继续积累经验\n1. 阅读【社区规则】并点击下方反应（表情）\n2. 阅读【频道指南】并点击下方反应（表情）'
 
-		return interaction.reply({
+		return interaction.editReply({
 			content: replayStr,
-			ephemeral: false,
 			embeds: [embed],
 			files: [attachment],
 		})
