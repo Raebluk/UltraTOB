@@ -6,7 +6,7 @@ import {
 	GuildMemberRoleManager,
 } from 'discord.js'
 
-import { yzConfig } from '@/configs'
+import { playerConfig, yzConfig } from '@/configs'
 import { Discord, Injectable, Slash } from '@/decorators'
 import {
 	DailyCounter,
@@ -143,7 +143,7 @@ export default class UserCommand {
 				{
 					name: '重置时间',
 					value: '美东时间每晚0点',
-					inline: true,
+					inline: false,
 				}
 			)
 			.setColor('#7A76EB')
@@ -153,6 +153,16 @@ export default class UserCommand {
 					text: '🤖 TOB is watching you!',
 				}
 			)
+
+		if (playerProfile.exp > playerConfig.expDoubleLimit) {
+			embed.addFields(
+				{
+					name: '金币余额',
+					value: `${playerProfile.sliver}`,
+					inline: true,
+				}
+			)
+		}
 
 		return {
 			embed,
