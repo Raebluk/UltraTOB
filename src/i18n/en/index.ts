@@ -48,6 +48,24 @@ const en = {
 				},
 			},
 		},
+		CONFIG: {
+			NAME: 'config',
+			DESCRIPTION: 'Config server-based settings',
+			OPTIONS: {
+				NAME: {
+					NAME: 'name',
+					DESCRIPTION: 'The name of the config item',
+				},
+				TYPE: {
+					NAME: 'type',
+					DESCRIPTION: '"channel" or "role" or "user" or "mission"',
+				},
+				VALUE: {
+					NAME: 'value',
+					DESCRIPTION: "The value of the config item",
+				}
+			},
+		},
 		PREFIX: {
 			NAME: 'prefix',
 			DESCRIPTION: 'Change the prefix of the bot.',
