@@ -70,10 +70,10 @@ export default class ConfigAddCommand {
 		})
 		name: string,
 		value: string,
-		type: 'channel' | 'role' | 'user',
+		type: 'channel' | 'role' | 'user' | 'value',
 		interaction: CommandInteraction
 	) {
-		if (!['channel', 'role', 'user'].includes(type)) {
+		if (!['channel', 'role', 'user', 'value'].includes(type)) {
 			return interaction.reply({
 				content: '设置类型必须是 `channel` 或 `role` 或 `user`',
 				ephemeral: true,
@@ -91,10 +91,14 @@ export default class ConfigAddCommand {
 		if (!configItem) {
 			returnItem = await this.configRepo.set(name, value, type, configGuild)
 		} else {
-			const configItemArray = JSON.parse(configItem.value)
-			// TODO: validation?
-			configItemArray.add(value)
-			returnItem = await this.configRepo.set(name, configItemArray, type, configGuild)
+			if (configItem.type !== 'value') {
+				const configItemArray = JSON.parse(configItem.value)
+				// TODO: validation?
+				configItemArray.add(value)
+				returnItem = await this.configRepo.set(name, configItemArray, type, configGuild)
+			} else {
+				returnItem = await this.configRepo.set(name, value, type, configGuild)
+			}
 		}
 
 		return interaction.reply({

@@ -25,7 +25,7 @@ export class GuildConfigItem extends CustomBaseEntity {
     value: string = ''
 
 	@Property({ type: 'string' })
-	type: 'channel' | 'mission' | 'role' | 'user'
+	type: 'channel' | 'mission' | 'role' | 'user' | 'value'
 
 }
 
@@ -41,12 +41,12 @@ export class GuildConfigItemRepository extends EntityRepository<GuildConfigItem>
 		return data
 	}
 
-	async set(name: string, value: string, type: 'channel' | 'mission' | 'role' | 'user', guild: Guild): Promise<GuildConfigItem> {
+	async set(name: string, value: string, type: 'channel' | 'mission' | 'role' | 'user' | 'value', guild: Guild): Promise<GuildConfigItem> {
 		const item = await this.findOne({ name, guild })
 		if (!item) {
 			const newItem = new GuildConfigItem()
 			newItem.name = name
-			if (type !== 'mission') {
+			if (type !== 'mission' && type !== 'value') {
 				newItem.value = JSON.stringify([value])
 			} else {
 				newItem.value = JSON.stringify(value)
