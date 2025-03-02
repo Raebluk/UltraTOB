@@ -94,7 +94,7 @@ export default class ConfigAddCommand {
 			if (configItem.type !== 'value') {
 				const configItemArray = JSON.parse(configItem.value)
 				// TODO: validation?
-				configItemArray.add(value)
+				configItemArray.push(value)
 				returnItem = await this.configRepo.set(name, configItemArray, type, configGuild)
 			} else {
 				returnItem = await this.configRepo.set(name, value, type, configGuild)
