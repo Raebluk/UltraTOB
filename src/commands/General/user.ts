@@ -12,6 +12,8 @@ import {
 	DailyCounter,
 	DailyCounterRepository,
 	Guild,
+	GuildConfigItem,
+	GuildConfigItemRepository,
 	GuildRepository,
 	Player,
 	PlayerRepository,
@@ -31,10 +33,12 @@ export default class UserCommand {
 	private playerRepo: PlayerRepository
 	private guildRepo: GuildRepository
 	private counterRepo: DailyCounterRepository
+	private configRepo: GuildConfigItemRepository
 
 	constructor(
 		private db: Database
 	) {
+		this.configRepo = this.db.get(GuildConfigItem)
 		this.userRepo = this.db.get(User)
 		this.playerRepo = this.db.get(Player)
 		this.guildRepo = this.db.get(Guild)
@@ -47,8 +51,19 @@ export default class UserCommand {
 	})
 	@Guard()
 	async user(interaction: CommandInteraction) {
-		if (!yzConfig.channels.userCommandAllowed.includes(interaction.channelId)) {
-			const allowedChannels = yzConfig.channels.userCommandAllowed.map(channelId => `<#${channelId}>`).join(', ')
+		const guild = resolveGuild(interaction)
+		const user = resolveUser(interaction)
+
+		const guildEntity = await this.guildRepo.findOneOrFail({ id: guild!.id })
+		const userEntity = await this.userRepo.findOneOrFail({ id: user!.id })
+
+		const userCommandAllowedConfig = await this.configRepo.get('userCommandAllowed', guildEntity)
+		const userCommandAllowed = userCommandAllowedConfig !== null
+			? (JSON.parse(userCommandAllowedConfig.value) as string[])
+			: []
+
+		if (!userCommandAllowed.includes(interaction.channelId)) {
+			const allowedChannels = userCommandAllowed.map(channelId => `<#${channelId}>`).join(', ')
 
 			return interaction.reply({
 				content: `由于 TOB 的放射性危害，有关部门已经规定:\nTOB 的 \`/user\` 指令需要前往以下频道执行: ${allowedChannels}！`,
@@ -57,14 +72,12 @@ export default class UserCommand {
 		}
 
 		await interaction.deferReply()
-		const userNickname = (interaction.member as any)?.nickname || interaction.user.globalName || interaction.user.username
 
+		const userNickname = (interaction.member as any)?.nickname || interaction.user.globalName || interaction.user.username
 		const userTag = interaction.user.tag
 
-		const guild = resolveGuild(interaction)
-		const user = resolveUser(interaction)
-		const guildEntity = await this.guildRepo.findOneOrFail({ id: guild!.id })
-		const userEntity = await this.userRepo.findOneOrFail({ id: user!.id })
+		const expDoubleLimitConfig = await this.configRepo.get('expDoubleLimit', guildEntity)
+		const expDoubleLimit = expDoubleLimitConfig !== null ? JSON.parse(expDoubleLimitConfig!.value) : 4845
 
 		const playerProfile = await this.playerRepo.findOneOrFail({ user: userEntity, guild: guildEntity })
 		if (!playerProfile) {
@@ -83,9 +96,13 @@ export default class UserCommand {
 		}
 
 		// TODO: save to database
-		const requiredRoleIds = yzConfig.roles.playerQualifiedRequired
+		const playerQualifiedRequiredConfig = await this.configRepo.get('playerQualifiedRequired', guildEntity)
+		const playerQualifiedRequired = playerQualifiedRequiredConfig !== null
+			? (JSON.parse(playerQualifiedRequiredConfig.value) as string[])
+			: []
+
 		const memberRoles = (interaction.member!.roles as GuildMemberRoleManager).cache.map(role => role.id)
-		const hasRequiredRoles = requiredRoleIds.every(roleId => memberRoles.includes(roleId))
+		const hasRequiredRoles = playerQualifiedRequired.every(roleId => memberRoles.includes(roleId))
 		if (!hasRequiredRoles) {
 			payload.qualified = false
 		}
@@ -110,7 +127,7 @@ export default class UserCommand {
 			})
 		}
 
-		const { embed, attachment } = await this.buildPlayerInfoEmbed(playerProfile, userTag, userNickname)
+		const { embed, attachment } = await this.buildPlayerInfoEmbed(playerProfile, userTag, userNickname, expDoubleLimit)
 
 		const replayStr = payload.qualified
 			? 'TOB 刚刚在堆积如山的资料中翻出了你的档案...'
@@ -123,7 +140,7 @@ export default class UserCommand {
 		})
 	}
 
-	private async buildPlayerInfoEmbed(playerProfile: Player, userTag: string, userNickname: string): Promise<{ embed: EmbedBuilder, attachment: AttachmentBuilder }> {
+	private async buildPlayerInfoEmbed(playerProfile: Player, userTag: string, userNickname: string, expDoubleLimit: number): Promise<{ embed: EmbedBuilder, attachment: AttachmentBuilder }> {
 		const counter = await this.counterRepo.findOneOrFail({ player: playerProfile })
 		const attachment = new AttachmentBuilder(`python/store/usercard_${userTag}.jpg`, { name: `usercard_${userTag}.jpg` })
 		const embed = new EmbedBuilder()
@@ -154,7 +171,7 @@ export default class UserCommand {
 				}
 			)
 
-		if (playerProfile.exp > playerConfig.expDoubleLimit) {
+		if (playerProfile.exp > expDoubleLimit) {
 			embed.addFields(
 				{
 					name: '金币余额',
