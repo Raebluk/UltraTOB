@@ -1,6 +1,5 @@
 import { Category } from '@discordx/utilities'
 import { ApplicationCommandOptionType, CommandInteraction } from 'discord.js'
-import { Client } from 'discordx'
 
 import { yzConfig } from '@/configs'
 import { Discord, Injectable, Slash, SlashChoice, SlashOption } from '@/decorators'
@@ -67,27 +66,28 @@ export default class VModCommand {
 			})
 		}
 
-		try {
-			const guild = resolveGuild(interaction)
-			const guildEntity = await guildRepo.findOneOrFail({ id: guild?.id })
+		const guild = resolveGuild(interaction)
+		const guildEntity = await guildRepo.findOneOrFail({ id: guild?.id })
 
-			const valueUpdated = await playerRepo.updatePlayerValue({ dcTag, guild: guildEntity }, amount, type)
-			if (!valueUpdated) {
-				return interaction.reply({ content: `Player with tag ${dcTag} not found in guild ${guildEntity.id}. Please contact the admins.` })
-			}
-
-			const interactionUser = resolveUser(interaction)
-			const admin = await userRepo.findOneOrFail({ id: interactionUser!.id })
-			const player = await playerRepo.findOneOrFail({ dcTag, guild: guildEntity })
-
-			await valueChangeLogRepo.insertLog(player!, admin!, amount, type, note)
-			const infoStr = `<@${interactionUser!.id}> just changed <@${player.user.id}>'s ${type} by ${amount}`
-			this.logger.log(infoStr, 'info', true, yzConfig.channels.modLogChannel)
-
-			return interaction.reply({ content: infoStr })
-		} catch (error) {
-			return interaction.reply({ content: 'An error occurred while modifying exp points. Talk to the Allmighty Kulbear.' })
+		const valueUpdated = await playerRepo.updatePlayerValue({ dcTag, guild: guildEntity }, amount, type)
+		if (!valueUpdated) {
+			return interaction.reply({ content: `Player with tag ${dcTag} not found in guild ${guildEntity.id}. Please contact the admins.` })
 		}
+
+		const interactionUser = resolveUser(interaction)
+		const admin = await userRepo.findOneOrFail({ id: interactionUser!.id })
+		const player = await playerRepo.findOne({ dcTag, guild: guildEntity })
+		if (!player) {
+			interaction.reply({
+				content: '该用户近期更改过 discord 用户名，无法直接更改数值，请联系管理员。',
+			})
+		}
+
+		await valueChangeLogRepo.insertLog(player!, admin!, amount, type, note)
+		const infoStr = `<@${interactionUser!.id}> 刚刚更改了 <@${player!.user.id}> 的 ${type} ${amount}`
+		this.logger.log(infoStr, 'info', true, yzConfig.channels.modLogChannel)
+
+		return interaction.reply({ content: infoStr })
 	}
 
 }
