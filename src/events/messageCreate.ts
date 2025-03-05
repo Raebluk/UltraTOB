@@ -34,7 +34,7 @@ export default class MessageCreateEvent {
 	) {
 		if (message.author.bot) return
 		// accumulate exp for text message
-		this.onMessageCreateAccumulateDailyTextExp(message)
+		await this.onMessageCreateAccumulateDailyTextExp(message)
 
 		await client.executeCommand(message, false)
 	}
