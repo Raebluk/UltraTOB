@@ -5,6 +5,10 @@ import { Discord, Injectable, On, Schedule } from '@/decorators'
 import {
 	DailyCounter,
 	DailyCounterRepository,
+	Guild,
+	GuildConfigItem,
+	GuildConfigItemRepository,
+	GuildRepository,
 	Player,
 	PlayerRepository,
 	User,
@@ -23,6 +27,9 @@ export default class GuildAvailableEvent {
 	private playerRepo: PlayerRepository
 	private userRepo: UserRepository
 	private valueChangeLogRepo: ValueChangeLogRepository
+	private guildRepo: GuildRepository
+	private configRepo: GuildConfigItemRepository
+	private expConfig: Record<string, number> = {}
 
 	constructor(
 		private logger: Logger,
@@ -32,6 +39,8 @@ export default class GuildAvailableEvent {
 		this.playerRepo = this.db.get(Player)
 		this.valueChangeLogRepo = this.db.get(ValueChangeLog)
 		this.userRepo = this.db.get(User)
+		this.guildRepo = this.db.get(Guild)
+		this.configRepo = this.db.get(GuildConfigItem)
 	}
 
 	@On('guildAvailable')
@@ -40,6 +49,10 @@ export default class GuildAvailableEvent {
 		client: Client
 	) {
 		syncGuild(guild.id, client)
+
+		const guildEntity = await this.guildRepo.findOneOrFail({ id: guild.id })
+		const expDoubleLimitConfig = await this.configRepo.get('expDoubleLimit', guildEntity)
+		this.expConfig[guild.id] = expDoubleLimitConfig !== null ? JSON.parse(expDoubleLimitConfig!.value) : 4845
 
 		const members = await guild.members.fetch()
 		for (const member of members.values()) {
@@ -65,7 +78,6 @@ export default class GuildAvailableEvent {
 	async resetAllDailyCounters() {
 		// Use bot as the moderator, provided id is bot id
 		const moderator = await this.userRepo.findOneOrFail({ id: generalConfig.botId })
-
 		// Fetch all daily counters
 		const counters = await this.dailyCounterRepo.findAll()
 
@@ -74,7 +86,7 @@ export default class GuildAvailableEvent {
 		for (const counter of counters) {
 			const playerId = counter.player.id
 			const player = await this.playerRepo.findOneOrFail({ id: playerId })
-			const playerExpDailyLimit = player.exp > playerConfig.expDoubleLimit ? 200 : 100
+			const playerExpDailyLimit = player.exp > this.expConfig[player.guild.id] ? 200 : 100
 			const valueChanged = playerExpDailyLimit - (counter.chatExp + counter.voiceExp)
 			// Log the experience change
 			if (valueChanged > 0) await this.valueChangeLogRepo.insertLog(player, moderator, valueChanged, 'exp', `Daily Reset by TOB | ${currentDate}`)
@@ -87,8 +99,8 @@ export default class GuildAvailableEvent {
 		this.logger.log('All daily counters have been reset.', 'info')
 	}
 
-	// every 5 minutes
-	@Schedule('0 */5 * * *') // every 5 minutes
+	// @Schedule('*/5 * * * * *') // every 5 seconds (for testing purposes)
+	@Schedule('*/5 * * * *') // every 5 minutes
 	async scanVoiceChannel() {
 		const client = await resolveDependency(Client)
 
@@ -105,7 +117,7 @@ export default class GuildAvailableEvent {
 				for (const member of channel!.members) {
 					const player = await playerRepo.findOne({ id: `${member[1].id}-${guild.id}` })
 					if (player) {
-						const valueChanged = await dailyCounterRepo.updateCounter(player, 1, 'voice')
+						const valueChanged = await dailyCounterRepo.updateCounter(player, player.exp >= this.expConfig[guild.id] ? 2 : 1, 'voice')
 						await playerRepo.updatePlayerValue({ id: player.id }, valueChanged, 'exp')
 					}
 				}
