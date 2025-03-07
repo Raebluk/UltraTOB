@@ -61,48 +61,6 @@ type RootTranslation = {
 				DESCRIPTION: RequiredParams<'link'>
 			}
 		}
-		CONFIG: {
-			/**
-			 * e​x​p​m​o​d
-			 */
-			NAME: string
-			/**
-			 * M​o​d​i​f​y​ ​e​x​p​ ​v​a​l​u​e​s​ ​f​o​r​ ​a​ ​s​p​e​c​i​f​i​e​d​ ​p​l​a​y​e​r
-			 */
-			DESCRIPTION: string
-			OPTIONS: {
-				NAME: {
-					/**
-					 * a​m​o​u​n​t
-					 */
-					NAME: string
-					/**
-					 * T​h​e​ ​a​m​o​u​n​t​ ​t​o​ ​c​h​a​n​g​e​ ​(​p​o​s​i​t​i​v​e​ ​o​r​ ​n​e​g​a​t​i​v​e​)
-					 */
-					DESCRIPTION: string
-				}
-				TYPE: {
-					/**
-					 * t​y​p​e
-					 */
-					NAME: string
-					/**
-					 * "​e​x​p​"​ ​o​r​ ​"​s​i​l​v​e​r​"
-					 */
-					DESCRIPTION: string
-				}
-				VALUE: {
-					/**
-					 * d​c​t​a​g
-					 */
-					NAME: string
-					/**
-					 * T​h​e​ ​p​l​a​y​e​r​'​s​ ​d​i​s​c​o​r​d​ ​t​a​g​ ​f​o​r​ ​r​e​f​e​r​e​n​c​e
-					 */
-					DESCRIPTION: string
-				}
-			}
-		}
 		EXPMOD: {
 			/**
 			 * e​x​p​m​o​d
@@ -160,6 +118,48 @@ type RootTranslation = {
 					NAME: string
 					/**
 					 * R​e​a​s​o​n​ ​f​o​r​ ​t​h​e​ ​e​x​p​ ​m​o​d​i​f​i​c​a​t​i​o​n
+					 */
+					DESCRIPTION: string
+				}
+			}
+		}
+		CONFIG: {
+			/**
+			 * c​o​n​f​i​g
+			 */
+			NAME: string
+			/**
+			 * C​o​n​f​i​g​ ​s​e​r​v​e​r​-​b​a​s​e​d​ ​s​e​t​t​i​n​g​s
+			 */
+			DESCRIPTION: string
+			OPTIONS: {
+				NAME: {
+					/**
+					 * n​a​m​e
+					 */
+					NAME: string
+					/**
+					 * T​h​e​ ​n​a​m​e​ ​o​f​ ​t​h​e​ ​c​o​n​f​i​g​ ​i​t​e​m
+					 */
+					DESCRIPTION: string
+				}
+				TYPE: {
+					/**
+					 * t​y​p​e
+					 */
+					NAME: string
+					/**
+					 * "​c​h​a​n​n​e​l​"​ ​o​r​ ​"​r​o​l​e​"​ ​o​r​ ​"​u​s​e​r​"​ ​o​r​ ​"​m​i​s​s​i​o​n​"
+					 */
+					DESCRIPTION: string
+				}
+				VALUE: {
+					/**
+					 * v​a​l​u​e
+					 */
+					NAME: string
+					/**
+					 * T​h​e​ ​v​a​l​u​e​ ​o​f​ ​t​h​e​ ​c​o​n​f​i​g​ ​i​t​e​m
 					 */
 					DESCRIPTION: string
 				}
@@ -380,6 +380,48 @@ export type TranslationFunctions = {
 					NAME: () => LocalizedString
 					/**
 					 * Reason for the exp modification
+					 */
+					DESCRIPTION: () => LocalizedString
+				}
+			}
+		}
+		CONFIG: {
+			/**
+			 * config
+			 */
+			NAME: () => LocalizedString
+			/**
+			 * Config server-based settings
+			 */
+			DESCRIPTION: () => LocalizedString
+			OPTIONS: {
+				NAME: {
+					/**
+					 * name
+					 */
+					NAME: () => LocalizedString
+					/**
+					 * The name of the config item
+					 */
+					DESCRIPTION: () => LocalizedString
+				}
+				TYPE: {
+					/**
+					 * type
+					 */
+					NAME: () => LocalizedString
+					/**
+					 * "channel" or "role" or "user" or "mission"
+					 */
+					DESCRIPTION: () => LocalizedString
+				}
+				VALUE: {
+					/**
+					 * value
+					 */
+					NAME: () => LocalizedString
+					/**
+					 * The value of the config item
 					 */
 					DESCRIPTION: () => LocalizedString
 				}
