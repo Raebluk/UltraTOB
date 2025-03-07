@@ -1,12 +1,13 @@
 import { Category } from '@discordx/utilities'
+import { LoggerRequestFields } from '@tsed/common'
 import {
 	AttachmentBuilder,
 	CommandInteraction,
 	EmbedBuilder,
+	GuildMember,
 	GuildMemberRoleManager,
 } from 'discord.js'
 
-import { playerConfig, yzConfig } from '@/configs'
 import { Discord, Injectable, Slash } from '@/decorators'
 import {
 	DailyCounter,
@@ -21,8 +22,33 @@ import {
 	UserRepository,
 } from '@/entities'
 import { Guard } from '@/guards'
-import { Database } from '@/services'
+import { Database, Logger } from '@/services'
 import { resolveGuild, resolveUser } from '@/utils/functions'
+
+const totalExpLevelMapping: Record<number, number> = {
+	5: 90,
+	10: 425,
+	15: 1680,
+	20: 6305,
+	25: 19675,
+	30: 34675,
+	35: 49675,
+	40: 64675,
+	45: 79675,
+	50: 94675,
+}
+// TODO: this is hard coded, need to find a way to improve
+const levelRoleMapping: Record<number, string> = {
+	10: '1337585523887177813',
+	15: '1351008487571980381',
+	20: '1351007105355747390',
+	25: '1351007307277926511',
+	30: '1351009018918735923',
+	35: '1351009016590897183',
+	40: '1351009009393598475',
+	45: '1351009014506586183',
+	50: '1351009012228947968',
+}
 
 @Discord()
 @Injectable()
@@ -36,7 +62,8 @@ export default class UserCommand {
 	private configRepo: GuildConfigItemRepository
 
 	constructor(
-		private db: Database
+		private db: Database,
+		private logger: Logger
 	) {
 		this.configRepo = this.db.get(GuildConfigItem)
 		this.userRepo = this.db.get(User)
@@ -51,6 +78,8 @@ export default class UserCommand {
 	})
 	@Guard()
 	async user(interaction: CommandInteraction) {
+		await interaction.deferReply()
+
 		const guild = resolveGuild(interaction)
 		const user = resolveUser(interaction)
 
@@ -71,8 +100,6 @@ export default class UserCommand {
 			})
 		}
 
-		await interaction.deferReply()
-
 		const userNickname = (interaction.member as any)?.nickname || interaction.user.globalName || interaction.user.username
 		const userTag = interaction.user.tag
 
@@ -85,6 +112,9 @@ export default class UserCommand {
 				content: `不可能！绝对不可能！@${userTag} 的资料竟然消失在了虚空之中...`,
 			})
 		}
+
+		// check level roles
+		this.checkAndAssignLevelRoles(interaction, playerProfile)
 
 		const payload = {
 			dcName: userNickname,
@@ -138,6 +168,51 @@ export default class UserCommand {
 			embeds: [embed],
 			files: [attachment],
 		})
+	}
+
+	private async checkAndAssignLevelRoles(interaction: CommandInteraction, playerProfile: Player) {
+		const rolesToAdd: string[] = []
+		const rolesToRemove: string[] = []
+
+		for (const [level, expRequired] of Object.entries(totalExpLevelMapping)) {
+			if (playerProfile.exp >= expRequired) {
+				rolesToAdd.push(levelRoleMapping[Number(level)])
+			}
+		}
+
+		if (rolesToAdd.length > 1) {
+			const lastRole = rolesToAdd.pop()!
+			rolesToRemove.push(...rolesToAdd)
+			rolesToAdd.length = 0
+			rolesToAdd.push(lastRole)
+		}
+
+		const member = interaction.member as GuildMember
+		const roleManager = member.roles as GuildMemberRoleManager
+
+		// Remove lower-tier roles
+		await Promise.all(
+			rolesToRemove.map((roleId) => {
+				if (roleManager.cache.has(roleId)) {
+					roleManager.remove(roleId).catch(() => null)
+					this.logger.log(`${roleId} removed from user <@${member.id}>`)
+				}
+
+				return null
+			})
+		)
+
+		// Add higher-tier roles
+		await Promise.all(
+			rolesToAdd.map((roleId) => {
+				if (!roleManager.cache.has(roleId)) {
+					roleManager.add(roleId).catch(() => null)
+					this.logger.log(`${roleId} added to user <@${member.id}>`)
+				}
+
+				return null
+			})
+		)
 	}
 
 	private async buildPlayerInfoEmbed(playerProfile: Player, userTag: string, userNickname: string, expDoubleLimit: number): Promise<{ embed: EmbedBuilder, attachment: AttachmentBuilder }> {
