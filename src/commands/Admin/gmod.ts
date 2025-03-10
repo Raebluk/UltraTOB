@@ -1,11 +1,11 @@
 import { Category } from '@discordx/utilities'
 import { ApplicationCommandOptionType, CommandInteraction } from 'discord.js'
-import { Client } from 'discordx'
 
-import { yzConfig } from '@/configs'
 import { Discord, Injectable, Slash, SlashChoice, SlashOption } from '@/decorators'
 import {
 	Guild,
+	GuildConfigItem,
+	GuildConfigItemRepository,
 	GuildRepository,
 	Player,
 	PlayerRepository,
@@ -27,6 +27,8 @@ export default class GModCommand {
 	private playerRepo: PlayerRepository
 	private guildRepo: GuildRepository
 	private valueChangeLogRepo: ValueChangeLogRepository
+	private modLogChannel: string[]
+	private configRepo: GuildConfigItemRepository
 
 	constructor(
 		private db: Database,
@@ -36,6 +38,7 @@ export default class GModCommand {
 		this.playerRepo = this.db.get(Player)
 		this.guildRepo = this.db.get(Guild)
 		this.valueChangeLogRepo = this.db.get(ValueChangeLog)
+		this.configRepo = this.db.get(GuildConfigItem)
 	}
 
 	@Slash({ name: 'gmod' })
@@ -82,6 +85,15 @@ export default class GModCommand {
 		}
 
 		await interaction.deferReply()
+
+		const guild = resolveGuild(interaction)
+		const guildEntity = await this.guildRepo.findOneOrFail({ id: guild?.id })
+
+		const modLogChannelConfig = await this.configRepo.get('missionBroadcastChannel', guildEntity)
+		this.modLogChannel = modLogChannelConfig !== null
+			? (JSON.parse(modLogChannelConfig.value) as string[])
+			: []
+
 		const failed: string[] = []
 
 		const dctags = dcTags.split(',').map(tag => tag.trim())
@@ -114,8 +126,10 @@ export default class GModCommand {
 			const player = await this.playerRepo.findOneOrFail({ dcTag, guild: guildEntity })
 
 			await this.valueChangeLogRepo.insertLog(player!, admin!, amount, type, note)
-			const infoStr = `<@${interactionUser!.id}> just changed <@${player.user.id}>'s ${type} by ${amount}`
-			this.logger.log(infoStr, 'info', true, yzConfig.channels.modLogChannel)
+			const infoStr = `<@${interactionUser!.id}> 刚刚更改了 <@${player!.user.id}> 的 ${type} ${amount}`
+			this.modLogChannel.forEach((channelId) => {
+				this.logger.log(infoStr, 'info', true, channelId)
+			})
 
 			return true
 		} catch (error) {
