@@ -12,9 +12,12 @@ import {
 } from 'discord.js'
 import { ButtonComponent } from 'discordx'
 
-import { yzConfig } from '@/configs'
 import { Discord, Injectable, Slash, SlashGroup } from '@/decorators'
 import {
+	Guild,
+	GuildConfigItem,
+	GuildConfigItemRepository,
+	GuildRepository,
 	Player,
 	PlayerRepository,
 	Quest,
@@ -38,9 +41,12 @@ export default class QuestListCommand {
 
 	private playerRepo: PlayerRepository
 	private questRepo: QuestRepository
+	private guildRepo: GuildRepository
 	private questRecordRepo: QuestRecordRepository
+	private configRepo: GuildConfigItemRepository
 	private currentQuestIdx: number
 	private quests: Quest[]
+	private missionBroadcastChannel: string[]
 
 	constructor(
 		private db: Database,
@@ -48,7 +54,9 @@ export default class QuestListCommand {
 	) {
 		this.playerRepo = this.db.get(Player)
 		this.questRepo = this.db.get(Quest)
+		this.guildRepo = this.db.get(Guild)
 		this.questRecordRepo = this.db.get(QuestRecord)
+		this.configRepo = this.db.get(GuildConfigItem)
 	}
 
 	@Slash({
@@ -58,6 +66,14 @@ export default class QuestListCommand {
 	@SlashGroup('quest')
 	@Guard()
 	async list(interaction: CommandInteraction) {
+		const guild = resolveGuild(interaction)
+		const guildEntity = await this.guildRepo.findOneOrFail({ id: guild!.id })
+
+		const missionBroadcastChannelConfig = await this.configRepo.get('missionBroadcastChannel', guildEntity)
+		this.missionBroadcastChannel = missionBroadcastChannelConfig !== null
+			? (JSON.parse(missionBroadcastChannelConfig.value) as string[])
+			: []
+
 		this.currentQuestIdx = 0
 		// find all quests that expire date is greater than now
 		this.quests = await this.questRepo.find({
@@ -168,7 +184,10 @@ export default class QuestListCommand {
 		} else {
 			const currentQuest = this.quests[this.currentQuestIdx]
 			this.questRecordRepo.insertQuestRecord(currentQuest, player)
-			this.logger.log(`<@${player.user.id}> 已经接受了任务【${currentQuest.name}】`, 'info', true, yzConfig.channels.missionBroadcastChannel)
+
+			this.missionBroadcastChannel.forEach((channelId) => {
+				this.logger.log(`<@${player.user.id}> 已经接受了任务【${currentQuest.name}】`, 'info', true, channelId)
+			})
 
 			return interaction.reply({
 				content: `任务【${currentQuest.name}】现在开始咯！`,
