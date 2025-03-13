@@ -1,9 +1,10 @@
 import { Category } from '@discordx/utilities'
 import { CommandInteraction } from 'discord.js'
 
-import { yzConfig } from '@/configs'
 import { Discord, Injectable, Slash, SlashGroup } from '@/decorators'
 import {
+	GuildConfigItem,
+	GuildConfigItemRepository,
 	Player,
 	PlayerRepository,
 	Quest,
@@ -26,6 +27,8 @@ export default class QuestDropCommand {
 	private playerRepo: PlayerRepository
 	private questRepo: QuestRepository
 	private questRecordRepo: QuestRecordRepository
+	private configRepo: GuildConfigItemRepository
+	private missionBroadcastChannel: string[]
 
 	constructor(
 		private db: Database,
@@ -34,6 +37,7 @@ export default class QuestDropCommand {
 		this.playerRepo = this.db.get(Player)
 		this.questRepo = this.db.get(Quest)
 		this.questRecordRepo = this.db.get(QuestRecord)
+		this.configRepo = this.db.get(GuildConfigItem)
 	}
 
 	@Slash({
@@ -64,7 +68,14 @@ export default class QuestDropCommand {
 		await this.db.em.persistAndFlush(currentQuestRecord)
 		const quest = await this.questRepo.findOneOrFail({ id: currentQuestRecord.quest.id })
 
-		this.logger.log(`<@${user!.id}>刚刚放弃了任务【${quest.name}】`, 'info', true, yzConfig.channels.missionBroadcastChannel)
+		const missionBroadcastChannelConfig = await this.configRepo.get('missionBroadcastChannel', player.guild)
+		this.missionBroadcastChannel = missionBroadcastChannelConfig !== null
+			? (JSON.parse(missionBroadcastChannelConfig.value) as string[])
+			: []
+
+		this.missionBroadcastChannel.forEach((channelId) => {
+			this.logger.log(`<@${user!.id}>刚刚放弃了任务【${quest.name}】`, 'info', true, channelId)
+		})
 
 		return interaction.reply({
 			content: `TOB 已经为你通知管理员审核你提交的任务【${quest.name}】！`,
