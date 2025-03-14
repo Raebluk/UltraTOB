@@ -17,9 +17,12 @@ import {
 } from 'discord.js'
 import { ButtonComponent, ModalComponent } from 'discordx'
 
-import { yzConfig } from '@/configs'
 import { Discord, Injectable, Slash, SlashGroup } from '@/decorators'
 import {
+	Guild,
+	GuildConfigItem,
+	GuildConfigItemRepository,
+	GuildRepository,
 	Player,
 	PlayerRepository,
 	Quest,
@@ -33,7 +36,7 @@ import {
 } from '@/entities'
 import { Guard, UserPermissions } from '@/guards'
 import { Database, Logger } from '@/services'
-import { resolveUser } from '@/utils/functions'
+import { resolveGuild, resolveUser } from '@/utils/functions'
 
 dayjs.extend(relativeTime)
 
@@ -50,8 +53,11 @@ export default class QuestReviewCommand {
 	private questRepo: QuestRepository
 	private questRecordRepo: QuestRecordRepository
 	private valueChangeLogRepo: ValueChangeLogRepository
+	private guildRepo: GuildRepository
+	private configRepo: GuildConfigItemRepository
 	private currentQuestIdx: number
 	private questRecords: QuestRecord[]
+	private missionBroadcastChannel: string[]
 
 	constructor(
 		private db: Database,
@@ -60,8 +66,10 @@ export default class QuestReviewCommand {
 		this.userRepo = this.db.get(User)
 		this.playerRepo = this.db.get(Player)
 		this.questRepo = this.db.get(Quest)
+		this.guildRepo = this.db.get(Guild)
 		this.questRecordRepo = this.db.get(QuestRecord)
 		this.valueChangeLogRepo = this.db.get(ValueChangeLog)
+		this.configRepo = this.db.get(GuildConfigItem)
 	}
 
 	@Slash({
@@ -73,6 +81,14 @@ export default class QuestReviewCommand {
 		UserPermissions(['Administrator'])
 	)
 	async review(interaction: CommandInteraction) {
+		const guild = resolveGuild(interaction)
+		const guildEntity = await this.guildRepo.findOneOrFail({ id: guild!.id })
+
+		const missionBroadcastChannelConfig = await this.configRepo.get('missionBroadcastChannel', guildEntity)
+		this.missionBroadcastChannel = missionBroadcastChannelConfig !== null
+			? (JSON.parse(missionBroadcastChannelConfig.value) as string[])
+			: []
+
 		this.questRecords = await this.questRecordRepo.find({ questEnded: false, needReview: true })
 		if (this.questRecords.length === 0) {
 			return interaction.reply({
@@ -236,7 +252,9 @@ export default class QuestReviewCommand {
 			user.send('提交的任务已经被驳回！请联系任务部！')
 		})
 
-		this.logger.log(`<@${taker.user.id}>的任务 - ${questToReview.quest.name} - 失败了，请联系审核人<@${interaction.user.id}>`, 'info', true, yzConfig.channels.missionBroadcastChannel)
+		this.missionBroadcastChannel.forEach((channelId) => {
+			this.logger.log(`<@${taker.user.id}>的任务 - ${questToReview.quest.name} - 失败了，请联系审核人<@${interaction.user.id}>`, 'info', true, channelId)
+		})
 
 		interaction.reply({
 			content: `任务【${questToReview.quest.name}】已经被驳回！`,
@@ -303,7 +321,9 @@ export default class QuestReviewCommand {
 		// if (questSilverReward) {
 		// 	rewardMessage += `\n获得奖励 ${questSilverReward} 银币！`
 		// }
-		this.logger.log(rewardMessage, 'info', true, yzConfig.channels.missionBroadcastChannel)
+		this.missionBroadcastChannel.forEach((channelId) => {
+			this.logger.log(rewardMessage, 'info', true, channelId)
+		})
 
 		client.users.fetch(player.user.id).then((user) => {
 			user.send(`你提交的任务【${questName}】已经审核完成，奖励已发放！`)
