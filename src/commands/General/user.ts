@@ -26,17 +26,18 @@ import { Database, Logger } from '@/services'
 import { resolveGuild, resolveUser } from '@/utils/functions'
 
 const totalExpLevelMapping: Record<number, number> = {
-	5: 90,
-	10: 425,
-	15: 1680,
-	20: 6305,
-	25: 19675,
-	30: 34675,
-	35: 49675,
-	40: 64675,
-	45: 79675,
-	50: 94675,
+	5: 60,
+	10: 320,
+	15: 980,
+	20: 4845,
+	25: 16675,
+	30: 31675,
+	35: 46675,
+	40: 61675,
+	45: 76675,
+	50: 91675,
 }
+
 // TODO: this is hard coded, need to find a way to improve
 const levelRoleMapping: Record<number, string> = {
 	10: '1337585523887177813',
