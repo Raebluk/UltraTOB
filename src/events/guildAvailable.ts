@@ -1,6 +1,5 @@
 import { ArgsOf, Client } from 'discordx'
 
-import { generalConfig, playerConfig } from '@/configs'
 import { Discord, Injectable, On, Schedule } from '@/decorators'
 import {
 	DailyCounter,
@@ -16,6 +15,7 @@ import {
 	ValueChangeLog,
 	ValueChangeLogRepository,
 } from '@/entities'
+import { env } from '@/env'
 import { Database, Logger } from '@/services'
 import { resolveDependency, syncGuild, syncUser } from '@/utils/functions'
 
@@ -77,7 +77,7 @@ export default class GuildAvailableEvent {
 	@Schedule('55 23 * * *') // everyday at 23:55
 	async resetAllDailyCounters() {
 		// Use bot as the moderator, provided id is bot id
-		const moderator = await this.userRepo.findOneOrFail({ id: generalConfig.botId })
+		const moderator = await this.userRepo.findOneOrFail({ id: env.BOT_ID })
 		// Fetch all daily counters
 		const counters = await this.dailyCounterRepo.findAll()
 
@@ -92,8 +92,15 @@ export default class GuildAvailableEvent {
 			if (valueChanged > 0) await this.valueChangeLogRepo.insertLog(player, moderator, valueChanged, 'exp', `Daily Reset by TOB | ${currentDate}`)
 		}
 
-		// Reset all daily counters
-		await this.dailyCounterRepo.resetAllCounters()
+		// Find all guilds in the database
+		const guilds = await this.guildRepo.findAll()
+		for (const guild of guilds) {
+			// Reset all daily counters
+			await this.dailyCounterRepo.resetAllCountersByGuild(guild)
+		}
+
+		// // Reset all daily counters
+		// await this.dailyCounterRepo.resetAllCounters()
 
 		// Log the reset action
 		this.logger.log('All daily counters have been reset.', 'info')
