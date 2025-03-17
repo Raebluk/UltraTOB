@@ -52,6 +52,7 @@ export class GuildConfigItemRepository extends EntityRepository<GuildConfigItem>
 				newItem.value = JSON.stringify(value)
 			}
 			newItem.type = type
+			newItem.guild = guild
 
 			await this.em.persistAndFlush(newItem)
 
