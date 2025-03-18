@@ -1,8 +1,8 @@
 import { Entity, EntityRepository, EntityRepositoryType, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core'
 
-import { playerConfig } from '@/configs'
-
 import { CustomBaseEntity } from './BaseEntity'
+import { Guild } from './Guild'
+import { GuildConfigItem } from './GuildConfigItem'
 import { Player } from './Player'
 
 // ===========================================
@@ -54,7 +54,11 @@ export class DailyCounterRepository extends EntityRepository<DailyCounter> {
 		const counter = new DailyCounter()
 		counter.player = player
 		counter.playerDcTag = player.dcTag
-		counter.resetCounter(player.exp >= playerConfig.expDoubleLimit ? 2 : 1)
+
+		const expDoubleLimitConfig = await this.em.getRepository(GuildConfigItem).get('expDoubleLimit', player.guild)
+		const expDoubleLimit = expDoubleLimitConfig !== null ? JSON.parse(expDoubleLimitConfig!.value) : 4845
+
+		counter.resetCounter(player.exp >= expDoubleLimit ? 2 : 1)
 		await this.em.persistAndFlush(counter)
 
 		return counter
@@ -77,11 +81,13 @@ export class DailyCounterRepository extends EntityRepository<DailyCounter> {
 		return valueChanged
 	}
 
-	async resetAllCounters() {
-		// reset all counters
-		const allCounters = await this.findAll()
+	async resetAllCountersByGuild(guild: Guild) {
+		const allCounters = await this.find({ player: { guild } })
+
+		const expDoubleLimitConfig = await this.em.getRepository(GuildConfigItem).get('expDoubleLimit', guild)
+		const expDoubleLimit = expDoubleLimitConfig !== null ? JSON.parse(expDoubleLimitConfig!.value) : 4845
 		for (const counter of allCounters) {
-			counter.resetCounter(counter.player.exp >= playerConfig.expDoubleLimit ? 2 : 1)
+			counter.resetCounter(counter.player.exp >= expDoubleLimit ? 2 : 1)
 		}
 		await this.em.persistAndFlush(allCounters)
 	}
