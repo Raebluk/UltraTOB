@@ -73,6 +73,59 @@ export default class UserCommand {
 			})
 		}
 
+		// Check and assign roles for user based on their level
+		const totalExpLevelMapping = {
+			5: 90,
+			10: 425,
+			15: 1680,
+			20: 6305,
+			25: 19675,
+			30: 34675,
+			35: 49675,
+			40: 64675,
+			45: 79675,
+			50: 94675,
+		}
+
+		const levelRoleMapping = {
+			10: '1337585523887177813',
+			15: '1351008487571980381',
+			20: '1351007105355747390',
+			25: '1351007307277926511',
+			30: '1351009018918735923',
+			35: '1351009016590897183',
+			40: '1351009009393598475',
+			45: '1351009014506586183',
+			50: '1351009012228947968',
+		}
+
+		let currentLevel = 0
+		for (const [level, exp] of Object.entries(totalExpLevelMapping)) {
+			if (playerProfile.exp >= exp) {
+				currentLevel = Number.parseInt(level)
+			} else {
+				break
+			}
+		}
+
+		const memberCurrentRoles = (interaction.member!.roles as GuildMemberRoleManager).cache
+		const currentRoleIds = Object.values(levelRoleMapping)
+
+		// Remove previous level roles
+		for (const roleId of currentRoleIds) {
+			if (memberCurrentRoles.has(roleId)) {
+				await memberCurrentRoles.remove(roleId)
+			}
+		}
+
+		// Assign the new level role
+		if (currentLevel >= 10) {
+			const newRoleId = levelRoleMapping[currentLevel]
+			if (newRoleId && !memberCurrentRoles.has(newRoleId)) {
+				await memberCurrentRoles.add(newRoleId)
+			}
+		}
+
 		const payload = {
 			dcName: userNickname,
 			dcId: userEntity.id,

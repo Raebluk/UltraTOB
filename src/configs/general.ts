@@ -38,16 +38,41 @@ export const generalConfig: GeneralConfigType = {
 }
 
 export const playerConfig = {
-	expDoubleLimit: 5300, // the limit of exp to double the daily exp
+	expDoubleLimit: 6305, // the limit of exp to double the daily exp
+	totalExpLevelMapping: {
+		5: 90,
+		10: 425,
+		15: 1680,
+		20: 6305,
+		25: 19675,
+		30: 34675,
+		35: 49675,
+		40: 64675,
+		45: 79675,
+		50: 94675,
+	},
 }
 
 // TODO: move to db
 export const yzConfig = {
 	channels: {
-		userCommandAllowed: ['1335948089768415357'],
+		userCommandAllowed: ['1348488218873692211'],
+		missionBroadcastChannel: '1348487926689829011',
+		modLogChannel: '1348488104662667284',
 	},
 	roles: {
 		playerQualifiedRequired: ['1217468916540903484', '1215766168674238524'],
+		levelRoleMapping: {
+			10: '1337585523887177813',
+			15: '1351008487571980381',
+			20: '1351007105355747390',
+			25: '1351007307277926511',
+			30: '1351009018918735923',
+			35: '1351009016590897183',
+			40: '1351009009393598475',
+			45: '1351009014506586183',
+			50: '1351009012228947968',
+		},
 	},
 }
 
