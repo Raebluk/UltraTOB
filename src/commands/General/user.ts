@@ -28,7 +28,7 @@ import { resolveGuild, resolveUser } from '@/utils/functions'
 const totalExpLevelMapping: Record<number, number> = {
 	5: 60,
 	10: 320,
-	15: 980,
+	15: 1285,
 	20: 4845,
 	25: 16675,
 	30: 31675,
@@ -95,7 +95,7 @@ export default class UserCommand {
 		if (!userCommandAllowed.includes(interaction.channelId)) {
 			const allowedChannels = userCommandAllowed.map(channelId => `<#${channelId}>`).join(', ')
 
-			return interaction.reply({
+			return interaction.followUp({
 				content: `由于 TOB 的放射性危害，有关部门已经规定:\nTOB 的 \`/user\` 指令需要前往以下频道执行: ${allowedChannels}！`,
 				ephemeral: true,
 			})
