@@ -1,11 +1,9 @@
-import { Guild as DGuild, User as DUser } from 'discord.js'
 import { ArgsOf, Client } from 'discordx'
 
-import { generalConfig, playerConfig } from '@/configs'
-import { Discord, Injectable, On, Schedule } from '@/decorators'
-import { DailyCounter, Player, User, ValueChangeLog } from '@/entities'
+import { Discord, Injectable, On } from '@/decorators'
+import { DailyCounter, Player } from '@/entities'
 import { Database, Logger } from '@/services'
-import { syncGuild, syncUser } from '@/utils/functions'
+import { syncUser } from '@/utils/functions'
 
 @Discord()
 @Injectable()
@@ -18,8 +16,7 @@ export default class GuildMemberAddEvent {
 
 	@On('guildMemberAdd')
 	async guildCreateHandler(
-		[member]: ArgsOf<'guildMemberAdd'>,
-		client: Client
+		[member]: ArgsOf<'guildMemberAdd'>
 	) {
 		const guild = member.guild
 		const existingPlayer = await this.db.get(Player).findOne({ id: `${member.user.id}-${guild.id}` })
