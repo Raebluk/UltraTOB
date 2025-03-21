@@ -63,7 +63,27 @@ const en = {
 				VALUE: {
 					NAME: 'value',
 					DESCRIPTION: "The value of the config item",
-				}
+				},
+				QUEST: {
+					NAME: 'questId',
+					DESCRIPTION: 'The quest ID',
+				},
+				EMOJI: {
+					NAME: 'emojiId',
+					DESCRIPTION: 'The emoji ID',
+				},
+				REWARD: {
+					NAME: 'reward',
+					DESCRIPTION: 'The reward amount',
+				},
+				REWARDTYPE: {
+					NAME: 'rewardType',
+					DESCRIPTION: 'The reward type, exp or silver',
+				},
+				CHANNEL: {
+					NAME: 'channelId',
+					DESCRIPTION: 'The channel ID that monitor the quest',
+				},
 			},
 		},
 		PREFIX: {

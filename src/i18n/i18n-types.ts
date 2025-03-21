@@ -163,6 +163,56 @@ type RootTranslation = {
 					 */
 					DESCRIPTION: string
 				}
+				QUEST: {
+					/**
+					 * q​u​e​s​t​I​d
+					 */
+					NAME: string
+					/**
+					 * T​h​e​ ​q​u​e​s​t​ ​I​D
+					 */
+					DESCRIPTION: string
+				}
+				EMOJI: {
+					/**
+					 * e​m​o​j​i​I​d
+					 */
+					NAME: string
+					/**
+					 * T​h​e​ ​e​m​o​j​i​ ​I​D
+					 */
+					DESCRIPTION: string
+				}
+				REWARD: {
+					/**
+					 * r​e​w​a​r​d
+					 */
+					NAME: string
+					/**
+					 * T​h​e​ ​r​e​w​a​r​d​ ​a​m​o​u​n​t
+					 */
+					DESCRIPTION: string
+				}
+				REWARDTYPE: {
+					/**
+					 * r​e​w​a​r​d​T​y​p​e
+					 */
+					NAME: string
+					/**
+					 * T​h​e​ ​r​e​w​a​r​d​ ​t​y​p​e​,​ ​e​x​p​ ​o​r​ ​s​i​l​v​e​r
+					 */
+					DESCRIPTION: string
+				}
+				CHANNEL: {
+					/**
+					 * c​h​a​n​n​e​l​I​d
+					 */
+					NAME: string
+					/**
+					 * T​h​e​ ​c​h​a​n​n​e​l​ ​I​D​ ​t​h​a​t​ ​m​o​n​i​t​o​r​ ​t​h​e​ ​q​u​e​s​t
+					 */
+					DESCRIPTION: string
+				}
 			}
 		}
 		PREFIX: {
@@ -422,6 +472,56 @@ export type TranslationFunctions = {
 					NAME: () => LocalizedString
 					/**
 					 * The value of the config item
+					 */
+					DESCRIPTION: () => LocalizedString
+				}
+				QUEST: {
+					/**
+					 * questId
+					 */
+					NAME: () => LocalizedString
+					/**
+					 * The quest ID
+					 */
+					DESCRIPTION: () => LocalizedString
+				}
+				EMOJI: {
+					/**
+					 * emojiId
+					 */
+					NAME: () => LocalizedString
+					/**
+					 * The emoji ID
+					 */
+					DESCRIPTION: () => LocalizedString
+				}
+				REWARD: {
+					/**
+					 * reward
+					 */
+					NAME: () => LocalizedString
+					/**
+					 * The reward amount
+					 */
+					DESCRIPTION: () => LocalizedString
+				}
+				REWARDTYPE: {
+					/**
+					 * rewardType
+					 */
+					NAME: () => LocalizedString
+					/**
+					 * The reward type, exp or silver
+					 */
+					DESCRIPTION: () => LocalizedString
+				}
+				CHANNEL: {
+					/**
+					 * channelId
+					 */
+					NAME: () => LocalizedString
+					/**
+					 * The channel ID that monitor the quest
 					 */
 					DESCRIPTION: () => LocalizedString
 				}
