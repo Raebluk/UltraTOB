@@ -165,7 +165,7 @@ type RootTranslation = {
 				}
 				QUEST: {
 					/**
-					 * q​u​e​s​t​I​d
+					 * q​u​e​s​t​_​i​d
 					 */
 					NAME: string
 					/**
@@ -175,7 +175,7 @@ type RootTranslation = {
 				}
 				EMOJI: {
 					/**
-					 * e​m​o​j​i​I​d
+					 * e​m​o​j​i​_​i​d
 					 */
 					NAME: string
 					/**
@@ -195,7 +195,7 @@ type RootTranslation = {
 				}
 				REWARDTYPE: {
 					/**
-					 * r​e​w​a​r​d​T​y​p​e
+					 * r​e​w​a​r​d​_​t​y​p​e
 					 */
 					NAME: string
 					/**
@@ -205,7 +205,7 @@ type RootTranslation = {
 				}
 				CHANNEL: {
 					/**
-					 * c​h​a​n​n​e​l​I​d
+					 * c​h​a​n​n​e​l​_​i​d
 					 */
 					NAME: string
 					/**
@@ -477,7 +477,7 @@ export type TranslationFunctions = {
 				}
 				QUEST: {
 					/**
-					 * questId
+					 * quest_id
 					 */
 					NAME: () => LocalizedString
 					/**
@@ -487,7 +487,7 @@ export type TranslationFunctions = {
 				}
 				EMOJI: {
 					/**
-					 * emojiId
+					 * emoji_id
 					 */
 					NAME: () => LocalizedString
 					/**
@@ -507,7 +507,7 @@ export type TranslationFunctions = {
 				}
 				REWARDTYPE: {
 					/**
-					 * rewardType
+					 * reward_type
 					 */
 					NAME: () => LocalizedString
 					/**
@@ -517,7 +517,7 @@ export type TranslationFunctions = {
 				}
 				CHANNEL: {
 					/**
-					 * channelId
+					 * channel_id
 					 */
 					NAME: () => LocalizedString
 					/**

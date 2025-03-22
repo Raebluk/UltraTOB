@@ -55,19 +55,19 @@ export default class ConfigMissionCommand {
 	@Guard()
 	async mission(
 		@SlashOption({
-			name: 'questId',
+			name: 'quest_id',
 			localizationSource: 'COMMANDS.CONFIG.OPTIONS.QUEST',
 			type: ApplicationCommandOptionType.String,
 			required: true,
 		})
 		@SlashOption({
-			name: 'emojiId',
+			name: 'emoji_id',
 			localizationSource: 'COMMANDS.CONFIG.OPTIONS.EMOJI',
 			type: ApplicationCommandOptionType.String,
 			required: true,
 		})
 		@SlashOption({
-			name: 'channelId',
+			name: 'channel_id',
 			localizationSource: 'COMMANDS.CONFIG.OPTIONS.CHANNEL',
 			type: ApplicationCommandOptionType.String,
 			required: true,
@@ -79,9 +79,9 @@ export default class ConfigMissionCommand {
 			required: true,
 		})
         @SlashOption({
-        	name: 'rewardType',
+        	name: 'reward_type',
         	localizationSource: 'COMMANDS.CONFIG.OPTIONS.REWARDTYPE',
-        	type: ApplicationCommandOptionType.Number,
+        	type: ApplicationCommandOptionType.String,
         	required: true,
         })
 		questId: string,
