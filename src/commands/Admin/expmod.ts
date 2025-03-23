@@ -83,37 +83,50 @@ export default class VModCommand {
 				ephemeral: true,
 			})
 		}
+		await this.playerRepo.getEntityManager().flush()
 
 		const guild = resolveGuild(interaction)
 		const guildEntity = await this.guildRepo.findOneOrFail({ id: guild?.id })
+		const player = await this.playerRepo.findOne(
+			{ dcTag, guild: guildEntity },
+			{ cache: false, refresh: true }
+		)
+		if (!player) {
+			interaction.reply({
+				content: '在服务器内无法找到该用户，请联系管理员。',
+			})
+		}
 
 		const modLogChannelConfig = await this.configRepo.get('missionBroadcastChannel', guildEntity)
 		this.modLogChannel = modLogChannelConfig !== null
 			? (JSON.parse(modLogChannelConfig.value) as string[])
 			: []
 
+		const prevValue = type === 'exp' ? player!.exp : player!.sliver
 		const valueUpdated = await this.playerRepo.updatePlayerValue({ dcTag, guild: guildEntity }, amount, type)
 		if (!valueUpdated) {
 			return interaction.reply({ content: `Player with tag ${dcTag} not found in guild ${guildEntity.id}. Please contact the admins.` })
 		}
+		const postValue = type === 'exp' ? player!.exp : player!.sliver
 
 		const interactionUser = resolveUser(interaction)
 		const admin = await this.userRepo.findOneOrFail({ id: interactionUser!.id })
-		const player = await this.playerRepo.findOne({ dcTag, guild: guildEntity })
-		if (!player) {
-			interaction.reply({
-				content: '该用户近期更改过 discord 用户名，无法直接更改数值，请联系管理员。',
-			})
-		}
-
 		await this.valueChangeLogRepo.insertLog(player!, admin!, amount, type, note)
-		const infoStr = `<@${interactionUser!.id}> 刚刚更改了 <@${player!.user.id}> 的 ${type} ${amount}`
+
+		// TODO: investigate whether this is needed
+		await this.db.em.persistAndFlush(player!)
+		await this.db.em.refresh(player!)
+
+		const infoStr = `<@${interactionUser!.id}> 刚刚更改了 <@${player!.user.id}> 的 ${type} ${amount}.\n原数值：${prevValue}\n新数值：${postValue}\n备注：${note}`
 
 		this.modLogChannel.forEach((channelId) => {
 			this.logger.log(infoStr, 'info', true, channelId)
 		})
 
-		return interaction.reply({ content: infoStr })
+		return interaction.reply({
+			content: infoStr,
+			ephemeral: true,
+		})
 	}
 
 }
