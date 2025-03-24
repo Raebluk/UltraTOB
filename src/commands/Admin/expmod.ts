@@ -92,10 +92,11 @@ export default class VModCommand {
 			{ cache: false, refresh: true }
 		)
 		if (!player) {
-			interaction.reply({
+			return interaction.reply({
 				content: '在服务器内无法找到该用户，请联系管理员。',
 			})
 		}
+		await this.db.em.refresh(player!)
 
 		const modLogChannelConfig = await this.configRepo.get('missionBroadcastChannel', guildEntity)
 		this.modLogChannel = modLogChannelConfig !== null
@@ -105,7 +106,7 @@ export default class VModCommand {
 		const prevValue = type === 'exp' ? player!.exp : player!.sliver
 		const valueUpdated = await this.playerRepo.updatePlayerValue({ dcTag, guild: guildEntity }, amount, type)
 		if (!valueUpdated) {
-			return interaction.reply({ content: `Player with tag ${dcTag} not found in guild ${guildEntity.id}. Please contact the admins.` })
+			return interaction.reply({ content: `用户 ${dcTag} 不存在于该服务器 ${guildEntity.id}，请联系管理员。` })
 		}
 		const postValue = type === 'exp' ? player!.exp : player!.sliver
 
