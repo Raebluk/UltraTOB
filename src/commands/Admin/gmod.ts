@@ -98,7 +98,7 @@ export default class GModCommand {
 
 		const dctags = dcTags.split(',').map(tag => tag.trim())
 		for (const dctag of dctags) {
-			const updated = await this.updatePlayer(dctag, type, amount, note, interaction)
+			const updated = await this.updatePlayer(dctag, guildEntity, type, amount, note, interaction)
 			if (!updated) {
 				failed.push(dctag)
 			}
@@ -111,22 +111,26 @@ export default class GModCommand {
 		)
 	}
 
-	private async updatePlayer(dcTag: string, type: 'exp' | 'silver', amount: number, note: string, interaction: CommandInteraction): Promise<boolean> {
-		const guild = resolveGuild(interaction)
-		const guildEntity = await this.guildRepo.findOneOrFail({ id: guild?.id })
-
-		const valueUpdated = await this.playerRepo.updatePlayerValue({ dcTag, guild: guildEntity }, amount, type)
-		if (!valueUpdated) {
-			return false
-		}
-
+	private async updatePlayer(dcTag: string, guild: Guild, type: 'exp' | 'silver', amount: number, note: string, interaction: CommandInteraction): Promise<boolean> {
 		try {
+			const player = await this.playerRepo.findOneOrFail(
+				{ dcTag, guild },
+				{ cache: false, refresh: true }
+			)
+			await this.db.em.refresh(player!)
+
+			const prevValue = type === 'exp' ? player!.exp : player!.sliver
+			const valueUpdated = await this.playerRepo.updatePlayerValue({ dcTag, guild }, amount, type)
+			if (!valueUpdated) {
+				return false
+			}
+			const postValue = type === 'exp' ? player!.exp : player!.sliver
+
 			const interactionUser = resolveUser(interaction)
 			const admin = await this.userRepo.findOneOrFail({ id: interactionUser!.id })
-			const player = await this.playerRepo.findOneOrFail({ dcTag, guild: guildEntity })
-
 			await this.valueChangeLogRepo.insertLog(player!, admin!, amount, type, note)
-			const infoStr = `<@${interactionUser!.id}> 刚刚更改了 <@${player!.user.id}> 的 ${type} ${amount}`
+			await this.db.em.refresh(player!)
+			const infoStr = `<@${interactionUser!.id}> 刚刚更改了 <@${player!.user.id}> 的 ${type} ${amount}.\n原数值：${prevValue}\n新数值：${postValue}\n备注：${note}`
 			this.modLogChannel.forEach((channelId) => {
 				this.logger.log(infoStr, 'info', true, channelId)
 			})
