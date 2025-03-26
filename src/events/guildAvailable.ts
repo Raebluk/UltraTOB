@@ -109,10 +109,10 @@ export default class GuildAvailableEvent {
 	// @Schedule('*/5 * * * * *') // every 5 seconds (for testing purposes)
 	@Schedule('*/5 * * * *') // every 5 minutes
 	async scanVoiceChannel() {
+		this.logger.log('Scanned voice channels')
 		const client = await resolveDependency(Client)
-
-		const playerRepo = this.db.get(Player)
-		const dailyCounterRepo = this.db.get(DailyCounter)
+		await this.playerRepo.getEntityManager().flush()
+		await this.dailyCounterRepo.getEntityManager().flush()
 		// Fetch all guilds from client
 		const guilds = client.guilds.cache
 
@@ -122,10 +122,19 @@ export default class GuildAvailableEvent {
 			const voiceChannels = channels.filter(channel => channel?.isVoiceBased())
 			for (const channel of voiceChannels.values()) {
 				for (const member of channel!.members) {
-					const player = await playerRepo.findOne({ id: `${member[1].id}-${guild.id}` })
+					const player = await this.playerRepo.findOne(
+						{ id: `${member[1].id}-${guild.id}` },
+						{ cache: false, refresh: true }
+					)
 					if (player) {
-						const valueChanged = await dailyCounterRepo.updateCounter(player, player.exp >= this.expConfig[guild.id] ? 2 : 1, 'voice')
-						await playerRepo.updatePlayerValue({ id: player.id }, valueChanged, 'exp')
+						this.logger.log(`Player <@${player.dcTag}> in channel ${channel!.name} in guild ${guild.name}`, 'info')
+						const valueChanged = await this.dailyCounterRepo.updateCounter(player, player.exp >= this.expConfig[guild.id] ? 2 : 1, 'voice')
+						const updateStatus = await this.playerRepo.updatePlayerValue({ id: player.id }, valueChanged, 'exp')
+						if (updateStatus) {
+							this.logger.log(`Player <@${player.dcTag}> has gained ${valueChanged} exp from voice channel in guild ${guild.name}. Player current exp: ${player.exp}`, 'info')
+						} else {
+							this.logger.log(`Failed to update player exp <@${player.dcTag}> in guild ${guild.name}. Player current exp ${player.exp}`, 'error')
+						}
 					}
 				}
 			}
