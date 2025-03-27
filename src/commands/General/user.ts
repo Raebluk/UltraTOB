@@ -36,6 +36,11 @@ const totalExpLevelMapping: Record<number, number> = {
 	40: 61675,
 	45: 76675,
 	50: 91675,
+	55: 106675,
+	60: 121675,
+	65: 136675,
+	70: 151675,
+	75: 166675,
 }
 
 // TODO: this is hard coded, need to find a way to improve
@@ -49,6 +54,11 @@ const levelRoleMapping: Record<number, string> = {
 	40: '1351009009393598475',
 	45: '1351009014506586183',
 	50: '1351009012228947968',
+	55: '1351009969566257224',
+	60: '1351009956370841600',
+	65: '1351009941321941053',
+	70: '1351009944253497416',
+	75: '1351009950964645970',
 }
 
 @Discord()
@@ -81,6 +91,9 @@ export default class UserCommand {
 	async user(interaction: CommandInteraction) {
 		await interaction.deferReply()
 
+		await this.playerRepo.getEntityManager().flush()
+		await this.counterRepo.getEntityManager().flush()
+
 		const guild = resolveGuild(interaction)
 		const user = resolveUser(interaction)
 
@@ -107,9 +120,12 @@ export default class UserCommand {
 		const expDoubleLimitConfig = await this.configRepo.get('expDoubleLimit', guildEntity)
 		const expDoubleLimit = expDoubleLimitConfig !== null ? JSON.parse(expDoubleLimitConfig!.value) : 4845
 
-		const playerProfile = await this.playerRepo.findOneOrFail({ user: userEntity, guild: guildEntity })
+		const playerProfile = await this.playerRepo.findOne(
+			{ user: userEntity, guild: guildEntity },
+			{ cache: false, refresh: true }
+		)
 		if (!playerProfile) {
-			interaction.editReply({
+			return interaction.editReply({
 				content: `不可能！绝对不可能！@${userTag} 的资料竟然消失在了虚空之中...`,
 			})
 		}
@@ -158,7 +174,13 @@ export default class UserCommand {
 			})
 		}
 
-		const { embed, attachment } = await this.buildPlayerInfoEmbed(playerProfile, userTag, userNickname, expDoubleLimit)
+		let counter = await this.counterRepo.findOne({ player: playerProfile }, { cache: false, refresh: true })
+		if (!counter) {
+			this.logger.log('Not found daily counter for the player, initializing...', 'info')
+			counter = await this.counterRepo.initCounter(playerProfile)
+		}
+
+		const { embed, attachment } = this.buildPlayerInfoEmbed(playerProfile, counter, userTag, userNickname, expDoubleLimit)
 
 		const replayStr = payload.qualified
 			? 'TOB 刚刚在堆积如山的资料中翻出了你的档案...'
@@ -216,8 +238,7 @@ export default class UserCommand {
 		)
 	}
 
-	private async buildPlayerInfoEmbed(playerProfile: Player, userTag: string, userNickname: string, expDoubleLimit: number): Promise<{ embed: EmbedBuilder, attachment: AttachmentBuilder }> {
-		const counter = await this.counterRepo.findOneOrFail({ player: playerProfile })
+	private buildPlayerInfoEmbed(playerProfile: Player, counter: DailyCounter, userTag: string, userNickname: string, expDoubleLimit: number): { embed: EmbedBuilder, attachment: AttachmentBuilder } {
 		const attachment = new AttachmentBuilder(`python/store/usercard_${userTag}.jpg`, { name: `usercard_${userTag}.jpg` })
 		const embed = new EmbedBuilder()
 			.setTitle(`⭐丨${userNickname} 的机密档案已经泄露...丨⭐`)
