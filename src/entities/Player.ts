@@ -53,6 +53,8 @@ export class PlayerRepository extends EntityRepository<Player> {
 	}
 
 	async updatePlayerValue(filterQuery: object, valueDelta: number, type: 'exp' | 'silver'): Promise<boolean> {
+		if (valueDelta === 0) return true
+
 		await this.em.flush()
 		const player = await this.findOne(
 			filterQuery,
@@ -60,9 +62,9 @@ export class PlayerRepository extends EntityRepository<Player> {
 		)
 		if (!player) return false
 
+		await this.em.refresh(player)
 		if (type === 'silver') player.sliver += valueDelta
 		if (type === 'exp') player.exp += valueDelta
-
 		await this.em.persistAndFlush(player)
 
 		return true

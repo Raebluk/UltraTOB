@@ -96,27 +96,24 @@ export default class VModCommand {
 				content: '在服务器内无法找到该用户，请联系管理员。',
 			})
 		}
-		await this.db.em.refresh(player!)
 
 		const modLogChannelConfig = await this.configRepo.get('missionBroadcastChannel', guildEntity)
 		this.modLogChannel = modLogChannelConfig !== null
 			? (JSON.parse(modLogChannelConfig.value) as string[])
 			: []
 
+		await this.db.em.refresh(player!)
 		const prevValue = type === 'exp' ? player!.exp : player!.sliver
 		const valueUpdated = await this.playerRepo.updatePlayerValue({ dcTag, guild: guildEntity }, amount, type)
 		if (!valueUpdated) {
 			return interaction.reply({ content: `用户 ${dcTag} 不存在于该服务器 ${guildEntity.id}，请联系管理员。` })
 		}
+		await this.db.em.refresh(player!)
 		const postValue = type === 'exp' ? player!.exp : player!.sliver
 
 		const interactionUser = resolveUser(interaction)
 		const admin = await this.userRepo.findOneOrFail({ id: interactionUser!.id })
 		await this.valueChangeLogRepo.insertLog(player!, admin!, amount, type, note)
-
-		// TODO: investigate whether this is needed
-		await this.db.em.persistAndFlush(player!)
-		await this.db.em.refresh(player!)
 
 		const infoStr = `<@${interactionUser!.id}> 刚刚更改了 <@${player!.user.id}> 的 ${type} ${amount}.\n原数值：${prevValue}\n新数值：${postValue}\n备注：${note}`
 
