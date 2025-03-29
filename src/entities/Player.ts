@@ -30,7 +30,7 @@ export class Player extends CustomBaseEntity {
     exp: number = 0
 
 	@Property()
-	sliver: number = 0
+	silver: number = 0
 
 }
 
@@ -63,7 +63,7 @@ export class PlayerRepository extends EntityRepository<Player> {
 		if (!player) return false
 
 		await this.em.refresh(player)
-		if (type === 'silver') player.sliver += valueDelta
+		if (type === 'silver') player.silver += valueDelta
 		if (type === 'exp') player.exp += valueDelta
 		await this.em.persistAndFlush(player)
 

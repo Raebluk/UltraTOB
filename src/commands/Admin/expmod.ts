@@ -76,7 +76,7 @@ export default class VModCommand {
 		note: string,
 		interaction: CommandInteraction
 	) {
-		// make sure type is either `exp` or `sliver`
+		// make sure type is either `exp` or `silver`
 		if (!['exp', 'silver'].includes(type)) {
 			return interaction.reply({
 				content: '编辑类型必须是 `exp` 或 `silver`',
@@ -103,13 +103,13 @@ export default class VModCommand {
 			: []
 
 		await this.db.em.refresh(player!)
-		const prevValue = type === 'exp' ? player!.exp : player!.sliver
+		const prevValue = type === 'exp' ? player!.exp : player!.silver
 		const valueUpdated = await this.playerRepo.updatePlayerValue({ dcTag, guild: guildEntity }, amount, type)
 		if (!valueUpdated) {
 			return interaction.reply({ content: `用户 ${dcTag} 不存在于该服务器 ${guildEntity.id}，请联系管理员。` })
 		}
 		await this.db.em.refresh(player!)
-		const postValue = type === 'exp' ? player!.exp : player!.sliver
+		const postValue = type === 'exp' ? player!.exp : player!.silver
 
 		const interactionUser = resolveUser(interaction)
 		const admin = await this.userRepo.findOneOrFail({ id: interactionUser!.id })

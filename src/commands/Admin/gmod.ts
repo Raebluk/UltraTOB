@@ -76,7 +76,7 @@ export default class GModCommand {
 		note: string,
 		interaction: CommandInteraction
 	) {
-		// make sure type is either `exp` or `sliver`
+		// make sure type is either `exp` or `silver`
 		if (!['exp', 'silver'].includes(type)) {
 			return interaction.reply({
 				content: '编辑类型必须是 `exp` 或 `silver`',
@@ -119,12 +119,12 @@ export default class GModCommand {
 			)
 			await this.db.em.refresh(player!)
 
-			const prevValue = type === 'exp' ? player!.exp : player!.sliver
+			const prevValue = type === 'exp' ? player!.exp : player!.silver
 			const valueUpdated = await this.playerRepo.updatePlayerValue({ dcTag, guild }, amount, type)
 			if (!valueUpdated) {
 				return false
 			}
-			const postValue = type === 'exp' ? player!.exp : player!.sliver
+			const postValue = type === 'exp' ? player!.exp : player!.silver
 
 			const interactionUser = resolveUser(interaction)
 			const admin = await this.userRepo.findOneOrFail({ id: interactionUser!.id })

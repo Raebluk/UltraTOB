@@ -272,7 +272,7 @@ export default class UserCommand {
 			embed.addFields(
 				{
 					name: '金币余额',
-					value: `${playerProfile.sliver}`,
+					value: `${playerProfile.silver}`,
 					inline: true,
 				}
 			)
