@@ -37,20 +37,6 @@ export const generalConfig: GeneralConfigType = {
 
 }
 
-export const playerConfig = {
-	expDoubleLimit: 5300, // the limit of exp to double the daily exp
-}
-
-// TODO: move to db
-export const yzConfig = {
-	channels: {
-		userCommandAllowed: ['1335948089768415357'],
-	},
-	roles: {
-		playerQualifiedRequired: ['1217468916540903484', '1215766168674238524'],
-	},
-}
-
 // global colors
 export const colorsConfig = {
 	primary: '#2F3136',
