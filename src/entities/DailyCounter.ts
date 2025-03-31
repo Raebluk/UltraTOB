@@ -29,9 +29,13 @@ export class DailyCounter extends CustomBaseEntity {
 	@Property()
 	voiceExp: number = 90
 
+	@Property()
+	dailyMissionExp: number = 100
+
 	resetCounter(factor: number = 1) {
 		this.resetChatExp(factor)
 		this.resetVoiceExp(factor)
+		this.resetDailyMissionExp()
 	}
 
 	resetChatExp(factor: number = 1) {
@@ -40,6 +44,10 @@ export class DailyCounter extends CustomBaseEntity {
 
 	resetVoiceExp(factor: number = 1) {
 		this.voiceExp = 90 * factor
+	}
+
+	resetDailyMissionExp() {
+		this.dailyMissionExp = 100
 	}
 
 }
@@ -69,7 +77,16 @@ export class DailyCounterRepository extends EntityRepository<DailyCounter> {
 		const counter = await this.findOne({ player }) ?? await this.initCounter(player)
 
 		if (updateType !== 'chat' && updateType !== 'voice') {
-			throw new Error('Invalid update type')
+			if (updateType === 'dailyMission') {
+				value = counter.dailyMissionExp
+				const valueChanged = Math.min(counter.dailyMissionExp, value)
+				counter.dailyMissionExp -= valueChanged
+				await this.em.persistAndFlush(counter)
+
+				return valueChanged
+			} else {
+				throw new Error('Invalid update type')
+			}
 		}
 
 		const expType = updateType === 'chat' ? 'chatExp' : 'voiceExp'
