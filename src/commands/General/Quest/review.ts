@@ -293,12 +293,14 @@ export default class QuestReviewCommand {
 		const approver = await this.userRepo.findOneOrFail({ id: dUser!.id })
 		const player = await this.playerRepo.findOneOrFail({ id: currentQuestRecord.taker.id })
 		const quest = await this.questRepo.findOneOrFail({ id: currentQuestRecord.quest.id })
+		const reviewer = await this.playerRepo.findOneOrFail({ id: `${dUser!.id}-${interaction.guild!.id}` })
 
 		const questName = interaction.fields.getTextInputValue('quest-name-input')
 		const questExpReward = Number(interaction.fields.getTextInputValue('quest-exp-reward-input'))
 		// const questSilverReward = Number(interaction.fields.getTextInputValue('quest-silver-reward-input'))
 
 		// update quest record
+		currentQuestRecord.reviewer = reviewer
 		currentQuestRecord.needReview = false
 		currentQuestRecord.questEnded = true
 		currentQuestRecord.completeDate = new Date()
