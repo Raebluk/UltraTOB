@@ -37,6 +37,9 @@ export class QuestRecord extends CustomBaseEntity {
 	@Property()
 	questEnded: boolean = false
 
+	@Property()
+	recordNote: string = ''
+
 }
 
 // ===========================================
@@ -49,6 +52,17 @@ export class QuestRecordRepository extends EntityRepository<QuestRecord> {
 		const questRecord = new QuestRecord()
 		questRecord.taker = taker
 		questRecord.quest = quest
+
+		await this.em.persistAndFlush(questRecord)
+
+		return questRecord
+	}
+
+	async insertQuestRecordWithNote(quest: Quest, taker: Player, note: string): Promise<QuestRecord> {
+		const questRecord = new QuestRecord()
+		questRecord.taker = taker
+		questRecord.quest = quest
+		questRecord.recordNote = note
 
 		await this.em.persistAndFlush(questRecord)
 
