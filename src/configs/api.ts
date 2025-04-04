@@ -1,7 +1,11 @@
-import { env } from '@/env'
+import 'dotenv/config'
+
+import process from 'node:process'
+
+const env = process.env
 
 export const apiConfig: APIConfigType = {
 
 	enabled: false, // is the API server enabled or not
-	port: env.API_PORT || 4000, // the port on which the API server should be exposed
+	port: env.API_PORT as any || 4000, // very bad type casting ;(
 }

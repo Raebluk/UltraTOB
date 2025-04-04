@@ -1,12 +1,16 @@
-import { env } from '@/env'
+import 'dotenv/config'
+
+import process from 'node:process'
+
+const env = process.env
 
 export const generalConfig: GeneralConfigType = {
 
 	name: 'ultra-tob', // the name of your bot
 	description: '', // the description of your bot
 	defaultLocale: 'en', // default language of the bot, must be a valid locale
-	ownerId: env.BOT_OWNER_ID,
-	botId: env.BOT_ID,
+	ownerId: env.BOT_OWNER_ID as string,
+	botId: env.BOT_ID as string,
 	timezone: 'America/New_York', // default TimeZone set to New York time to well format and localize dates (logs, stats, etc)
 
 	simpleCommandsPrefix: '!', // default prefix for simple command messages (old way to do commands on discord)
