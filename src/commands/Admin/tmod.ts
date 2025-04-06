@@ -1,7 +1,7 @@
 import { Category } from '@discordx/utilities'
 import { ApplicationCommandOptionType, CommandInteraction } from 'discord.js'
 
-import { Discord, Injectable, Slash, SlashChoice, SlashOption } from '@/decorators'
+import { Discord, Injectable, Slash, SlashOption } from '@/decorators'
 import {
 	Guild,
 	GuildConfigItem,
@@ -21,7 +21,7 @@ import { resolveGuild, resolveUser } from '@/utils/functions'
 @Discord()
 @Injectable()
 @Category('Admin')
-export default class GModCommand {
+export default class TModCommand {
 
 	private userRepo: UserRepository
 	private playerRepo: PlayerRepository
@@ -41,14 +41,14 @@ export default class GModCommand {
 		this.configRepo = this.db.get(GuildConfigItem)
 	}
 
-	@Slash({ name: 'gmod' })
+	@Slash({ name: 'tmod' })
 	@Guard(
 		UserPermissions(['Administrator'])
 	)
-	async gmod(
+	async tmod(
 		@SlashOption({
-			name: 'dctags',
-			localizationSource: 'COMMANDS.EXPMOD.OPTIONS.DCTAGS',
+			name: 'roleid',
+			localizationSource: 'COMMANDS.EXPMOD.OPTIONS.ROLETAG',
 			type: ApplicationCommandOptionType.String,
 			required: true,
 		})
@@ -70,7 +70,7 @@ export default class GModCommand {
 			type: ApplicationCommandOptionType.String,
 			required: true,
 		})
-		dcTags: string,
+		roleid: string,
 		type: 'exp' | 'silver',
 		amount: number,
 		note: string,
@@ -96,7 +96,24 @@ export default class GModCommand {
 
 		const failed: string[] = []
 
-		const dctags = dcTags.split(',').map(tag => tag.trim())
+		// roleid is discord role id, we want to get all members with this role
+		const role = guild!.roles.cache.get(roleid)
+		if (!role) {
+			return interaction.followUp({
+				content: '无法找到该角色，请检查角色 ID 是否正确。',
+				ephemeral: true,
+			})
+		}
+		const members = role.members
+		if (members.size === 0) {
+			return interaction.followUp({
+				content: '该角色没有成员，请检查角色 ID 是否正确。',
+				ephemeral: true,
+			})
+		}
+
+		const dctags = members.map(member => member.user.tag)
+
 		for (const dctag of dctags) {
 			const updated = await this.updatePlayer(dctag, guildEntity, type, amount, note, interaction)
 			if (!updated) {
@@ -104,11 +121,11 @@ export default class GModCommand {
 			}
 		}
 
-		await interaction.editReply(
-			{
-				content: failed.length > 0 ? `Failed to update the following players: ${failed.join(', ')}` : 'Updated all players successfully',
-			}
-		)
+		return interaction.followUp({
+			content: `获取到 <@&${roleid}>${dctags.length} 个成员，正在更新...根据成员数量，可能有短时延迟。全部名单请检查日志频道。\n${
+				failed.length > 0 ? `\n以下成员已知更新失败：\n${failed.join(', ')}` : ''}`,
+			ephemeral: true,
+		})
 	}
 
 	private async updatePlayer(dcTag: string, guild: Guild, type: 'exp' | 'silver', amount: number, note: string, interaction: CommandInteraction): Promise<boolean> {

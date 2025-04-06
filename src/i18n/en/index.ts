@@ -42,9 +42,13 @@ const en = {
 					NAME: 'dctags',
 					DESCRIPTION: "The list of player's discord tags",
 				},
+				ROLETAG: {
+					NAME: 'roletag',
+					DESCRIPTION: 'The ID of roles for reference',
+				},
 				NOTE: {
 					NAME: 'note',
-					DESCRIPTION: 'Reason for the exp modification',
+					DESCRIPTION: 'Reason for the exp/silver modification',
 				},
 			},
 		},

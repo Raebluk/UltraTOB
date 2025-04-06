@@ -111,13 +111,23 @@ type RootTranslation = {
 					 */
 					DESCRIPTION: string
 				}
+				ROLETAG: {
+					/**
+					 * r​o​l​e​t​a​g
+					 */
+					NAME: string
+					/**
+					 * T​h​e​ ​I​D​ ​o​f​ ​r​o​l​e​s​ ​f​o​r​ ​r​e​f​e​r​e​n​c​e
+					 */
+					DESCRIPTION: string
+				}
 				NOTE: {
 					/**
 					 * n​o​t​e
 					 */
 					NAME: string
 					/**
-					 * R​e​a​s​o​n​ ​f​o​r​ ​t​h​e​ ​e​x​p​ ​m​o​d​i​f​i​c​a​t​i​o​n
+					 * R​e​a​s​o​n​ ​f​o​r​ ​t​h​e​ ​e​x​p​/​s​i​l​v​e​r​ ​m​o​d​i​f​i​c​a​t​i​o​n
 					 */
 					DESCRIPTION: string
 				}
@@ -423,13 +433,23 @@ export type TranslationFunctions = {
 					 */
 					DESCRIPTION: () => LocalizedString
 				}
+				ROLETAG: {
+					/**
+					 * roletag
+					 */
+					NAME: () => LocalizedString
+					/**
+					 * The ID of roles for reference
+					 */
+					DESCRIPTION: () => LocalizedString
+				}
 				NOTE: {
 					/**
 					 * note
 					 */
 					NAME: () => LocalizedString
 					/**
-					 * Reason for the exp modification
+					 * Reason for the exp/silver modification
 					 */
 					DESCRIPTION: () => LocalizedString
 				}
