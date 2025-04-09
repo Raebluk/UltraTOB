@@ -48,6 +48,7 @@ export class GuildConfigItemRepository extends EntityRepository<GuildConfigItem>
 	}
 
 	async set(name: string, value: string, type: 'channel' | 'mission' | 'role' | 'user' | 'value', guild: Guild): Promise<GuildConfigItem> {
+	async set(name: string, value: string | object, type: 'channel' | 'mission' | 'role' | 'user' | 'value', guild: Guild): Promise<GuildConfigItem> {
 		const item = await this.findOne({ name, guild })
 		if (!item) {
 			const newItem = new GuildConfigItem()
@@ -65,7 +66,7 @@ export class GuildConfigItemRepository extends EntityRepository<GuildConfigItem>
 			return newItem
 		} else {
 			item.value = JSON.stringify(value)
-			await this.em.flush()
+			await this.em.persistAndFlush(item)
 
 			return item
 		}

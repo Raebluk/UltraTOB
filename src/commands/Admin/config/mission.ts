@@ -105,7 +105,7 @@ export default class ConfigMissionCommand {
 			})
 		}
 
-		if (reward === -1) {
+		if (reward <= 0) {
 			const configItem = await this.configRepo.get(questId, configGuild)
 			if (!configItem) {
 				return interaction.followUp({
@@ -142,7 +142,7 @@ export default class ConfigMissionCommand {
 		}
 
 		// create a new config item
-		const returnItem = await this.configRepo.set(questId, JSON.stringify(payload), 'mission', configGuild)
+		const returnItem = await this.configRepo.set(questId, payload, 'mission', configGuild)
 
 		return interaction.followUp({
 			content: `${returnItem.name} 设置为 ${returnItem.value}`,

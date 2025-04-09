@@ -108,7 +108,7 @@ export default class MessageReactionAddEvent {
 				this.guildConfig[guild.id] = {
 					age: Date.now(),
 					config: configItems.map((item) => {
-						const parsedValue = JSON.parse(JSON.parse(item.value))
+						const parsedValue = JSON.parse(item.value)
 
 						return {
 							...parsedValue,
@@ -159,7 +159,7 @@ export default class MessageReactionAddEvent {
 						counter = await this.dailyCounterRepo.initCounter(player)
 					}
 					console.log('counter', counter.dailyMissionExp)
-					if (counter.dailyMissionExp <= 0) {
+					if (counter.dailyMissionExp <= 0 && configItem.rewardType === 'exp') {
 						this.logger.log(`用户 ${player.dcTag} 本日已经没有任务经验余额了！`, 'info')
 
 						return // terminate here
