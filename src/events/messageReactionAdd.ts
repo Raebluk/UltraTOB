@@ -49,6 +49,7 @@ export default class MessageReactionAddEvent {
 	private playerRepo: PlayerRepository
 	private valueChangeLogRepo: ValueChangeLogRepository
 	private userRepo: UserRepository
+	private marked: string[]
 
 	constructor(
 		private db: Database,
@@ -62,6 +63,7 @@ export default class MessageReactionAddEvent {
 		this.playerRepo = this.db.get(Player)
 		this.valueChangeLogRepo = this.db.get(ValueChangeLog)
 		this.userRepo = this.db.get(User)
+		this.marked = []
 	}
 
 	@On('messageReactionAdd')
@@ -80,6 +82,7 @@ export default class MessageReactionAddEvent {
 		const emoji = messageReaction.emoji
 
 		if (!message.author) return
+		if (this.marked.includes(message.id)) return
 
 		const guild = messageReaction.message.guild
 		if (!guild) return
@@ -133,9 +136,7 @@ export default class MessageReactionAddEvent {
 		for (const configItem of this.guildConfig[guild.id].config) {
 			if (configItem.channelId === channel.id && configItem.emojiId === emoji.name) {
 				// Check if the user has the "mission admin" role
-				// console.log(message.author)
-				// if (!message.author) return
-				console.log(message.id)
+
 				const admin = await guild.members.fetch(user.id)
 				const adminUser = await this.userRepo.findOne({ id: user.id })
 				if (!adminUser) return
@@ -151,14 +152,12 @@ export default class MessageReactionAddEvent {
 
 						return
 					}
-					console.log('player', player.dcTag)
 
 					// 1.1 Fetch the counter of the player
 					let counter = await this.dailyCounterRepo.findOne({ player })
 					if (!counter) {
 						counter = await this.dailyCounterRepo.initCounter(player)
 					}
-					console.log('counter', counter.dailyMissionExp)
 					if (counter.dailyMissionExp <= 0 && configItem.rewardType === 'exp') {
 						this.logger.log(`用户 ${player.dcTag} 本日已经没有任务经验余额了！`, 'info')
 
@@ -171,14 +170,13 @@ export default class MessageReactionAddEvent {
 
 						return
 					}
-					console.log('quest', quest.name)
 
 					// check if this message has been used for exp
 					const existingRecord = await this.questRecordRepo.findOne({ quest, taker: player, recordNote: message.id })
 					if (existingRecord) return // already used
 
 					const questRecord = await this.questRecordRepo.insertQuestRecordWithNote(quest, player, message.id)
-					console.log('questRecord', questRecord.quest.id)
+
 					// 2. Complete the quest record
 					const reviewer = await this.playerRepo.findOne({ id: `${admin!.id}-${guild.id}` })
 					if (!reviewer) {
@@ -194,10 +192,17 @@ export default class MessageReactionAddEvent {
 					questRecord.questEnded = true
 					questRecord.completeDate = new Date()
 					await this.db.em.persistAndFlush(questRecord)
-					console.log('questRecord', questRecord)
+
 					// 3. Assign the reward to the user
 
-					const valueChanged = await this.dailyCounterRepo.updateCounter(player, configItem.reward, 'dailyMission')
+					let valueChanged: number
+					if (configItem.rewardType === 'exp') {
+						valueChanged = await this.dailyCounterRepo.updateCounter(player, configItem.reward, 'dailyMission')
+					} else if (configItem.rewardType === 'silver') {
+						valueChanged = configItem.reward
+					} else {
+						return
+					}
 
 					await this.db.em.refresh(player)
 					const prevValue = player[configItem.rewardType === 'exp' ? 'exp' : 'silver']
@@ -234,6 +239,8 @@ export default class MessageReactionAddEvent {
 					client.users.fetch(player.user.id).then((user) => {
 						user.send(rewardMessage)
 					})
+
+					this.marked.push(message.id)
 				} catch (error) {
 					this.logger.log(`Error processing quest for user ${message.author.tag}: ${error}`, 'error')
 				}
