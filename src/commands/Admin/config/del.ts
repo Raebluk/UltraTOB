@@ -97,8 +97,8 @@ export default class ConfigDelCommand {
 			// TODO: validation?
 			const index = configItemArray.indexOf(item)
 			if (index > -1) {
-				configItemArray.splice(index, 1)
-				await this.configRepo.set(name, JSON.stringify(configItemArray), type, configGuild)
+				const resultArray = configItemArray.splice(index, 1)
+				await this.configRepo.set(name, resultArray, type, configGuild)
 
 				return interaction.reply({
 					content: `已从 ${name} 的配置中成功删除 ${item}`,

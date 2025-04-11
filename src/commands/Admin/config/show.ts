@@ -69,6 +69,10 @@ export default class ConfigShowCommand {
 			.setTimestamp()
 
 		for (const config of configs) {
+			if (config.type === 'mission') {
+				// Skip mission type
+				continue
+			}
 			let value = JSON.parse(config.value)
 			// double parsing needed here
 			if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {

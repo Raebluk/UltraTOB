@@ -80,7 +80,7 @@ export default class ConfigAddCommand {
 			})
 		}
 
-		// await interaction.deferReply()
+		await interaction.deferReply()
 		const guild = resolveGuild(interaction)
 
 		const configGuild = await this.guildRepo.findOne({ id: guild!.id })
@@ -105,7 +105,7 @@ export default class ConfigAddCommand {
 			}
 		}
 
-		return interaction.reply({
+		return interaction.followUp({
 			content: `${returnItem.name} 设置为 ${returnItem.value}`,
 			ephemeral: true,
 		})
