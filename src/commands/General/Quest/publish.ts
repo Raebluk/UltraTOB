@@ -104,12 +104,20 @@ export default class QuestPublishCommand {
 			.setMaxLength(10)
 			.setMinLength(1)
 
+		const questManualInput = new TextInputBuilder()
+			.setCustomId('quest-manual-input')
+			.setLabel('任务是否需要手动接取')
+			.setPlaceholder('1 for yes, 0 for no')
+			.setStyle(TextInputStyle.Short)
+			.setMaxLength(10)
+
 		modal.addComponents(
 			new ActionRowBuilder<TextInputBuilder>().addComponents(questDescriptionInput),
 			new ActionRowBuilder<TextInputBuilder>().addComponents(questDurationInput),
 			new ActionRowBuilder<TextInputBuilder>().addComponents(questRewardInput),
 			new ActionRowBuilder<TextInputBuilder>().addComponents(questMultipleTakerInput),
-			new ActionRowBuilder<TextInputBuilder>().addComponents(questRepeatableInput)
+			new ActionRowBuilder<TextInputBuilder>().addComponents(questRepeatableInput),
+			new ActionRowBuilder<TextInputBuilder>().addComponents(questManualInput)
 		)
 
 		return modal
@@ -122,6 +130,7 @@ export default class QuestPublishCommand {
 		const questReward = interaction.fields.getTextInputValue('quest-reward-input')
 		const questMultipleTaker = interaction.fields.getTextInputValue('quest-multiple-taker-input')
 		const questRepeatable = interaction.fields.getTextInputValue('quest-repeatable-input')
+		const questManual = interaction.fields.getTextInputValue('quest-manual-input')
 
 		const questNameDescriptionArray = questNameDescription.split('\n')
 		const questName = questNameDescriptionArray[0]
@@ -141,7 +150,8 @@ export default class QuestPublishCommand {
 			questReward,
 			questMultipleTaker,
 			questRepeatable,
-			questDuration
+			questDuration,
+			questManual
 		)
 
 		interaction.reply({

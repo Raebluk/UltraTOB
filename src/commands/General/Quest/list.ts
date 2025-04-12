@@ -80,6 +80,7 @@ export default class QuestListCommand {
 			expireDate: {
 				$gt: new Date(),
 			},
+			manual: true,
 		})
 
 		if (this.quests.length === 0) {

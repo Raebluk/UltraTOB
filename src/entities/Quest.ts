@@ -52,6 +52,9 @@ export class Quest extends CustomBaseEntity {
 	@Property()
 	publishedByAdmin: boolean = false
 
+	@Property()
+	manual: boolean = false
+
 	private generateUniqueID(prefix: string = 'Q'): string {
 		// generate a unique ID that start with the prefix and followed by a random text of 8 characters with numbers and letters
 		return prefix + Math.random().toString(36).substring(2, 12)
@@ -129,7 +132,8 @@ export class QuestRepository extends EntityRepository<Quest> {
 		questReward: string,
 		questMultipleTaker: string,
 		questRepeatable: string,
-		questDuration: string
+		questDuration: string,
+		manual: string
 	): Promise<Quest> {
 		const quest = new Quest()
 		quest.publisher = player
@@ -139,6 +143,7 @@ export class QuestRepository extends EntityRepository<Quest> {
 		quest.rewardDescription = questReward
 		quest.multipleTakers = questMultipleTaker === '1'
 		quest.repeatable = questRepeatable === '1'
+		quest.manual = manual === '1'
 
 		// TODO: now only by admin so simplify it
 		const now = new Date()
