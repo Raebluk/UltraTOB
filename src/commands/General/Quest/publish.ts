@@ -88,36 +88,19 @@ export default class QuestPublishCommand {
 			.setMaxLength(2500)
 			.setMinLength(2)
 
-		const questMultipleTakerInput = new TextInputBuilder()
-			.setCustomId('quest-multiple-taker-input')
-			.setLabel('任务是否可被多人接取')
-			.setPlaceholder('1 for yes, 0 for no')
-			.setStyle(TextInputStyle.Short)
+		const questParam = new TextInputBuilder()
+			.setCustomId('quest-param')
+			.setLabel('多人接取？重复接取？手动接取？每个输入后回车。')
+			.setPlaceholder('多人接取？1=是 0=否\n重复接取？1=是 0=否\n手动接取？1=是 0=否')
+			.setStyle(TextInputStyle.Paragraph)
 			.setMaxLength(10)
 			.setMinLength(1)
-
-		const questRepeatableInput = new TextInputBuilder()
-			.setCustomId('quest-repeatable-input')
-			.setLabel('任务是否可单人重复接取')
-			.setPlaceholder('1 for yes, 0 for no')
-			.setStyle(TextInputStyle.Short)
-			.setMaxLength(10)
-			.setMinLength(1)
-
-		const questManualInput = new TextInputBuilder()
-			.setCustomId('quest-manual-input')
-			.setLabel('任务是否需要手动接取')
-			.setPlaceholder('1 for yes, 0 for no')
-			.setStyle(TextInputStyle.Short)
-			.setMaxLength(10)
 
 		modal.addComponents(
 			new ActionRowBuilder<TextInputBuilder>().addComponents(questDescriptionInput),
 			new ActionRowBuilder<TextInputBuilder>().addComponents(questDurationInput),
 			new ActionRowBuilder<TextInputBuilder>().addComponents(questRewardInput),
-			new ActionRowBuilder<TextInputBuilder>().addComponents(questMultipleTakerInput),
-			new ActionRowBuilder<TextInputBuilder>().addComponents(questRepeatableInput),
-			new ActionRowBuilder<TextInputBuilder>().addComponents(questManualInput)
+			new ActionRowBuilder<TextInputBuilder>().addComponents(questParam)
 		)
 
 		return modal
@@ -128,16 +111,18 @@ export default class QuestPublishCommand {
 		const questNameDescription = interaction.fields.getTextInputValue('quest-description-input')
 		const questDuration = interaction.fields.getTextInputValue('quest-duration-input')
 		const questReward = interaction.fields.getTextInputValue('quest-reward-input')
-		const questMultipleTaker = interaction.fields.getTextInputValue('quest-multiple-taker-input')
-		const questRepeatable = interaction.fields.getTextInputValue('quest-repeatable-input')
-		const questManual = interaction.fields.getTextInputValue('quest-manual-input')
+		const questParam = interaction.fields.getTextInputValue('quest-param')
+		const questParamArray = questParam.split('\n')
+		const questMultipleTaker = questParamArray[0]
+		const questRepeatable = questParamArray[1]
+		const questManual = questParamArray[2]
 
 		const questNameDescriptionArray = questNameDescription.split('\n')
 		const questName = questNameDescriptionArray[0]
 		const questDescription = questNameDescriptionArray.slice(1).join('\n')
 
-		const dGuild = await resolveGuild(interaction)
-		const dUser = await resolveUser(interaction)
+		const dGuild = resolveGuild(interaction)
+		const dUser = resolveUser(interaction)
 
 		const guild = await this.guildRepo.findOneOrFail({ id: dGuild!.id })
 		const player = await this.playerRepo.findOneOrFail({ id: `${dUser!.id}-${dGuild!.id}` })
