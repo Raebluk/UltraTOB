@@ -21,6 +21,15 @@ import { Guard, UserPermissions } from '@/guards'
 import { Database, Logger } from '@/services'
 import { resolveGuild } from '@/utils/functions'
 
+const allowedConfigEntityNames = [
+	'expDoubleLimit',
+	'playerQualifiedRequired',
+	'userCommandAllowed',
+	'modLogChannel',
+	'missionBroadcastChannel',
+	'missionDivRole',
+]
+
 @Discord()
 @Injectable()
 @Category('Admin')
@@ -73,6 +82,14 @@ export default class ConfigAddCommand {
 		type: 'channel' | 'role' | 'user' | 'value',
 		interaction: CommandInteraction
 	) {
+		if (!allowedConfigEntityNames.includes(name)) {
+			return interaction.reply({
+				content: '设置名称拼写有误，请参考文档检查拼写。目前支持的配置条目有：\n'
+				+ '`expDoubleLimit`、`playerQualifiedRequired`、`userCommandAllowed`、`modLogChannel`、`missionBroadcastChannel`、`missionDivRole`',
+				ephemeral: true,
+			})
+		}
+
 		if (!['channel', 'role', 'user', 'value'].includes(type)) {
 			return interaction.reply({
 				content: '设置类型必须是 `channel` 或 `role` 或 `user`',

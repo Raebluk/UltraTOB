@@ -47,7 +47,6 @@ export class GuildConfigItemRepository extends EntityRepository<GuildConfigItem>
 		return data
 	}
 
-	async set(name: string, value: string, type: 'channel' | 'mission' | 'role' | 'user' | 'value', guild: Guild): Promise<GuildConfigItem> {
 	async set(name: string, value: string | object, type: 'channel' | 'mission' | 'role' | 'user' | 'value', guild: Guild): Promise<GuildConfigItem> {
 		const item = await this.findOne({ name, guild })
 		if (!item) {
