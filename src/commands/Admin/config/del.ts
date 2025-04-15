@@ -69,7 +69,7 @@ export default class ConfigDelCommand {
 			required: true,
 		})
 		name: string,
-		item: string,
+		value: string,
 		type: 'channel' | 'role' | 'user',
 		interaction: CommandInteraction
 	) {
@@ -95,18 +95,29 @@ export default class ConfigDelCommand {
 		} else {
 			const configItemArray = JSON.parse(configItem.value)
 			// TODO: validation?
-			const index = configItemArray.indexOf(item)
+			const index = configItemArray.indexOf(value)
 			if (index > -1) {
-				const resultArray = configItemArray.splice(index, 1)
-				await this.configRepo.set(name, resultArray, type, configGuild)
+				// remove the index-th item from the array
+				const resultArray = configItemArray.filter((item: string) => item !== value)
+				// If the array is empty, delete the config item
+				if (resultArray.length === 0) {
+					await this.configRepo.getEntityManager().remove(configItem).flush()
 
-				return interaction.reply({
-					content: `已从 ${name} 的配置中成功删除 ${item}`,
-					ephemeral: true,
-				})
+					return interaction.reply({
+						content: `已从 ${name} 的配置中成功删除 ${value}，由于没有剩余有效值， ${name} 的配置已被彻底删除`,
+						ephemeral: true,
+					})
+				} else {
+					await this.configRepo.set(name, resultArray, type, configGuild)
+
+					return interaction.reply({
+						content: `已从 ${name} 的配置中成功删除 ${value}`,
+						ephemeral: true,
+					})
+				}
 			} else {
 				return interaction.reply({
-					content: `${item} 不存在于 ${name} 的配置中，请检查`,
+					content: `${value} 不存在于 ${name} 的配置中，请检查`,
 					ephemeral: true,
 				})
 			}
