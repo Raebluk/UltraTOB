@@ -78,25 +78,25 @@ export default class ConfigMShowCommand {
 			if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
 				value = JSON.parse(value)
 			}
-
+			value.channelId = value.channelId ? `<#${value.channelId}>` : '未设置'
 			embed.addFields({
 				name: config.name,
 				value: JSON.stringify(value) || '未设置',
 				inline: false,
 			})
 			seen.push(config.name)
+		}
 
-			const allQuests = await this.questRepo.find({ guild: configGuild, expireDate: { $gt: new Date() }, manual: false })
-			if (allQuests.length > 0) {
-				// for each quest that are not in seen, add them to the embed
-				for (const quest of allQuests) {
-					if (!seen.includes(quest.name)) {
-						embed.addFields({
-							name: '待设置任务',
-							value: `任务名：<${quest.name}>\n任务ID：${quest.id}\n任务过期时间：${quest.expireDate.toLocaleString()}`,
-							inline: false,
-						})
-					}
+		const allQuests = await this.questRepo.find({ guild: configGuild, expireDate: { $gt: new Date() }, manual: false })
+		if (allQuests.length > 0) {
+			// for each quest that are not in seen, add them to the embed
+			for (const quest of allQuests) {
+				if (!seen.includes(quest.id)) {
+					embed.addFields({
+						name: '待设置任务',
+						value: `任务名：<${quest.name}>\n任务ID：${quest.id}\n任务过期时间：${quest.expireDate.toLocaleString()}`,
+						inline: false,
+					})
 				}
 			}
 		}
