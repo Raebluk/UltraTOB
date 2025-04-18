@@ -81,6 +81,7 @@ export default class QuestListCommand {
 				$gt: new Date(),
 			},
 			manual: true,
+			guild: guildEntity,
 		})
 
 		if (this.quests.length === 0) {
