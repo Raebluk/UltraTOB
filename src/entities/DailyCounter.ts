@@ -35,7 +35,7 @@ export class DailyCounter extends CustomBaseEntity {
 	resetCounter(factor: number = 1) {
 		this.resetChatExp(factor)
 		this.resetVoiceExp(factor)
-		this.resetDailyMissionExp()
+		this.resetDailyMissionExp(factor)
 	}
 
 	resetChatExp(factor: number = 1) {
@@ -46,8 +46,8 @@ export class DailyCounter extends CustomBaseEntity {
 		this.voiceExp = 90 * factor
 	}
 
-	resetDailyMissionExp() {
-		this.dailyMissionExp = 100
+	resetDailyMissionExp(factor: number = 1) {
+		this.dailyMissionExp = 100 * factor
 	}
 
 }
@@ -78,7 +78,7 @@ export class DailyCounterRepository extends EntityRepository<DailyCounter> {
 
 		if (updateType !== 'chat' && updateType !== 'voice') {
 			if (updateType === 'dailyMission') {
-				value = counter.dailyMissionExp
+				// value = counter.dailyMissionExp
 				const valueChanged = Math.min(counter.dailyMissionExp, value)
 				counter.dailyMissionExp -= valueChanged
 				await this.em.persistAndFlush(counter)

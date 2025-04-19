@@ -197,7 +197,12 @@ export default class MessageReactionAddEvent {
 
 					let valueChanged: number
 					if (configItem.rewardType === 'exp') {
-						valueChanged = await this.dailyCounterRepo.updateCounter(player, configItem.reward, 'dailyMission')
+						// TODO: config it
+						if (player.exp > 4805) {
+							valueChanged = await this.dailyCounterRepo.updateCounter(player, configItem.reward * 2, 'dailyMission')
+						} else {
+							valueChanged = await this.dailyCounterRepo.updateCounter(player, configItem.reward, 'dailyMission')
+						}
 					} else if (configItem.rewardType === 'silver') {
 						valueChanged = configItem.reward
 					} else {
@@ -223,7 +228,7 @@ export default class MessageReactionAddEvent {
 
 					// 4. Log the exp/silver change to value change log
 					await this.valueChangeLogRepo.insertLog(player, adminUser, valueChanged, configItem.rewardType === 'exp' ? 'exp' : 'silver', `任务奖励 - ${quest.name} - 频道 ${channel.id} - prev: ${prevValue} - post: ${postValue}`)
-					const rewardMessage = `<@${message.author.tag}> 在频道 <#${channel.id}> 完成任务 ${quest.name} 收到了 ${configItem.reward} ${configItem.rewardType} 的任务奖励`
+					const rewardMessage = `<@${message.author.tag}> 在频道 <#${channel.id}> 完成任务 ${quest.name} 收到了 ${valueChanged} ${configItem.rewardType} 的任务奖励`
 
 					// 5. Send quest complete message to mission broadcast channel
 					const missionBroadcastChannelConfig = await this.configRepo.get('missionBroadcastChannel', guildEntity)
