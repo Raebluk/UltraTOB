@@ -41,9 +41,10 @@ export default class MessageCreateEvent {
 
 	async onMessageCreateAccumulateDailyTextExp(message: any) {
 		const playerId = `${message.member?.id}-${message.guild?.id}`
-		const player = await this.playerRepo.findOne({
-			id: playerId,
-		})
+		const player = await this.playerRepo.findOne(
+			{ id: playerId },
+			{ cache: false, refresh: true }
+		)
 
 		if (!player) return
 

@@ -58,11 +58,12 @@ export class QuestRecordRepository extends EntityRepository<QuestRecord> {
 		return questRecord
 	}
 
-	async insertQuestRecordWithNote(quest: Quest, taker: Player, note: string): Promise<QuestRecord> {
+	async insertQuestRecordWithNote(quest: Quest, taker: Player, note: string, completeDate: Date = new Date()): Promise<QuestRecord> {
 		const questRecord = new QuestRecord()
 		questRecord.taker = taker
 		questRecord.quest = quest
 		questRecord.recordNote = note
+		questRecord.completeDate = completeDate
 
 		await this.em.persistAndFlush(questRecord)
 

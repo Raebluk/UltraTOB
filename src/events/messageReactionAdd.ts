@@ -136,11 +136,26 @@ export default class MessageReactionAddEvent {
 		for (const configItem of this.guildConfig[guild.id].config) {
 			if (configItem.channelId === channel.id && configItem.emojiId === emoji.name) {
 				// Check if the user has the "mission admin" role
-
 				const admin = await guild.members.fetch(user.id)
 				const adminUser = await this.userRepo.findOne({ id: user.id })
 				if (!adminUser) return
 				try {
+					// 0. check whether there are existing quest records for this user on the same day
+					const today = new Date()
+					today.setHours(0, 0, 0, 0) // Reset time to the start of the day
+					const existingRecords = await this.questRecordRepo.find({
+						taker: { id: `${message.author.id}-${guild.id}` },
+						quest: { id: configItem.questId },
+						completeDate: { $gte: today },
+						questEnded: true,
+					})
+
+					if (existingRecords.length > 0) {
+						this.logger.log(`User ${message.author.tag} has already completed the quest ${configItem.questId} today.`, 'info')
+
+						return // terminate here
+					}
+
 					// 1. Add quest record to the user
 					await this.playerRepo.getEntityManager().flush()
 					const player = await this.playerRepo.findOne(
@@ -175,7 +190,7 @@ export default class MessageReactionAddEvent {
 					const existingRecord = await this.questRecordRepo.findOne({ quest, taker: player, recordNote: message.id })
 					if (existingRecord) return // already used
 
-					const questRecord = await this.questRecordRepo.insertQuestRecordWithNote(quest, player, message.id)
+					const questRecord = await this.questRecordRepo.insertQuestRecordWithNote(quest, player, message.id, message.createdAt)
 
 					// 2. Complete the quest record
 					const reviewer = await this.playerRepo.findOne({ id: `${admin!.id}-${guild.id}` })
