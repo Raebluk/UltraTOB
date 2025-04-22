@@ -100,13 +100,9 @@ export class DailyCounterRepository extends EntityRepository<DailyCounter> {
 
 	async resetAllCountersByGuild(guild: Guild) {
 		const allCounters = await this.find({ player: { guild } })
-
-		const expDoubleLimitConfig = await this.em.getRepository(GuildConfigItem).get('expDoubleLimit', guild)
-		const expDoubleLimit = expDoubleLimitConfig !== null ? JSON.parse(expDoubleLimitConfig!.value) : 4845
-		for (const counter of allCounters) {
-			counter.resetCounter(counter.player.exp >= expDoubleLimit ? 2 : 1)
-		}
-		await this.em.persistAndFlush(allCounters)
+		
+		// Remove all counters from the given guild
+		await this.em.removeAndFlush(allCounters)
 	}
 
 }
