@@ -204,7 +204,7 @@ export default class QuestListCommand {
 		this.currentQuestIdx += 1
 		const { embed, buttons } = await this.buildQuestListInfoEmbed(interaction)
 
-		interaction.editReply({
+		await interaction.editReply({
 			embeds: [embed],
 			components: [buttons],
 		})
@@ -216,7 +216,7 @@ export default class QuestListCommand {
 		this.currentQuestIdx -= 1
 		const { embed, buttons } = await this.buildQuestListInfoEmbed(interaction)
 
-		interaction.editReply({
+		await interaction.editReply({
 			embeds: [embed],
 			components: [buttons],
 		})
