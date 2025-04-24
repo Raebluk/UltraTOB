@@ -23,43 +23,7 @@ import {
 } from '@/entities'
 import { Guard } from '@/guards'
 import { Database, Logger } from '@/services'
-import { resolveGuild, resolveUser } from '@/utils/functions'
-
-const totalExpLevelMapping: Record<number, number> = {
-	5: 60,
-	10: 320,
-	15: 1285,
-	20: 4845,
-	25: 16675,
-	30: 31675,
-	35: 46675,
-	40: 61675,
-	45: 76675,
-	50: 91675,
-	55: 106675,
-	60: 121675,
-	65: 136675,
-	70: 151675,
-	75: 166675,
-}
-
-// TODO: this is hard coded, need to find a way to improve
-const levelRoleMapping: Record<number, string> = {
-	10: '1337585523887177813',
-	15: '1351008487571980381',
-	20: '1351007105355747390',
-	25: '1351007307277926511',
-	30: '1351009018918735923',
-	35: '1351009016590897183',
-	40: '1351009009393598475',
-	45: '1351009014506586183',
-	50: '1351009012228947968',
-	55: '1351009969566257224',
-	60: '1351009956370841600',
-	65: '1351009941321941053',
-	70: '1351009944253497416',
-	75: '1351009950964645970',
-}
+import { resolveGuild, resolveUser, updateMemberLevelRoles } from '@/utils/functions'
 
 @Discord()
 @Injectable()
@@ -131,7 +95,8 @@ export default class UserCommand {
 		}
 
 		// check level roles
-		this.checkAndAssignLevelRoles(interaction, playerProfile)
+		const member = interaction.member as GuildMember
+		await updateMemberLevelRoles(member, playerProfile.exp, this.logger)
 
 		const payload = {
 			dcName: userNickname,
@@ -191,51 +156,6 @@ export default class UserCommand {
 			embeds: [embed],
 			files: [attachment],
 		})
-	}
-
-	private async checkAndAssignLevelRoles(interaction: CommandInteraction, playerProfile: Player) {
-		const rolesToAdd: string[] = []
-		const rolesToRemove: string[] = []
-
-		for (const [level, expRequired] of Object.entries(totalExpLevelMapping)) {
-			if (playerProfile.exp >= expRequired) {
-				rolesToAdd.push(levelRoleMapping[Number(level)])
-			}
-		}
-
-		if (rolesToAdd.length > 1) {
-			const lastRole = rolesToAdd.pop()!
-			rolesToRemove.push(...rolesToAdd)
-			rolesToAdd.length = 0
-			rolesToAdd.push(lastRole)
-		}
-
-		const member = interaction.member as GuildMember
-		const roleManager = member.roles as GuildMemberRoleManager
-
-		// Remove lower-tier roles
-		await Promise.all(
-			rolesToRemove.map((roleId) => {
-				if (roleManager.cache.has(roleId)) {
-					roleManager.remove(roleId).catch(() => null)
-					this.logger.log(`${roleId} removed from user <@${member.id}>`)
-				}
-
-				return null
-			})
-		)
-
-		// Add higher-tier roles
-		await Promise.all(
-			rolesToAdd.map((roleId) => {
-				if (!roleManager.cache.has(roleId)) {
-					roleManager.add(roleId).catch(() => null)
-					this.logger.log(`${roleId} added to user <@${member.id}>`)
-				}
-
-				return null
-			})
-		)
 	}
 
 	private buildPlayerInfoEmbed(playerProfile: Player, counter: DailyCounter, userTag: string, userNickname: string, expDoubleLimit: number): { embed: EmbedBuilder, attachment: AttachmentBuilder } {
