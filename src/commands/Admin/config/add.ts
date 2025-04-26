@@ -28,6 +28,7 @@ const allowedConfigEntityNames = [
 	'modLogChannel',
 	'missionBroadcastChannel',
 	'missionDivRole',
+	'adminLogChannel',
 ]
 
 @Discord()
