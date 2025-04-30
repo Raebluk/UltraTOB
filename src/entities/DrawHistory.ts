@@ -99,14 +99,14 @@ export class DrawHistoryRepository extends EntityRepository<DrawHistory> {
 		const currentYear = now.getFullYear()
 		const currentMonth = now.getMonth()
 
-		// Calculate the start of the current draw period (17th of current or previous month)
+		// Calculate the start of the current draw period (25th of current or previous month)
 		let periodStart: Date
-		if (now.getDate() >= 17) {
-			// After 17th, period started on 17th of current month
-			periodStart = new Date(currentYear, currentMonth, 17, 0, 0, 0, 0)
+		if (now.getDate() >= 25) {
+			// After 25th, period started on 25th of current month
+			periodStart = new Date(currentYear, currentMonth, 25, 0, 0, 0, 0)
 		} else {
-			// Before 17th, period started on 17th of previous month
-			periodStart = new Date(currentYear, currentMonth - 1, 17, 0, 0, 0, 0)
+			// Before 25th, period started on 25th of previous month
+			periodStart = new Date(currentYear, currentMonth - 1, 25, 0, 0, 0, 0)
 		}
 
 		return await this.count({

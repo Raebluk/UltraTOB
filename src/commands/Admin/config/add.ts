@@ -29,6 +29,9 @@ const allowedConfigEntityNames = [
 	'missionBroadcastChannel',
 	'missionDivRole',
 	'adminLogChannel',
+	'botTestMode',
+	'drawCommandAllowed',
+	'bigRewardChannel',
 ]
 
 @Discord()
@@ -86,7 +89,7 @@ export default class ConfigAddCommand {
 		if (!allowedConfigEntityNames.includes(name)) {
 			return interaction.reply({
 				content: '设置名称拼写有误，请参考文档检查拼写。目前支持的配置条目有：\n'
-				+ '`expDoubleLimit`、`playerQualifiedRequired`、`userCommandAllowed`、`modLogChannel`、`missionBroadcastChannel`、`missionDivRole`',
+				+ '`expDoubleLimit`、`playerQualifiedRequired`、`userCommandAllowed`、`modLogChannel`、`missionBroadcastChannel`、`missionDivRole`、`adminLogChannel`、`botTestMode`、`drawCommandAllowed`、`bigRewardChannel`',
 				ephemeral: true,
 			})
 		}
