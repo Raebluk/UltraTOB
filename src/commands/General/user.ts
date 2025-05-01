@@ -1,5 +1,4 @@
 import { Category } from '@discordx/utilities'
-import { LoggerRequestFields } from '@tsed/common'
 import {
 	AttachmentBuilder,
 	CommandInteraction,
@@ -17,9 +16,13 @@ import {
 	GuildConfigItemRepository,
 	GuildRepository,
 	Player,
+	PlayerMetadata,
+	PlayerMetadataRepository,
 	PlayerRepository,
 	User,
 	UserRepository,
+	ValueChangeLog,
+	ValueChangeLogRepository,
 } from '@/entities'
 import { Guard } from '@/guards'
 import { Database, Logger } from '@/services'
@@ -35,6 +38,8 @@ export default class UserCommand {
 	private guildRepo: GuildRepository
 	private counterRepo: DailyCounterRepository
 	private configRepo: GuildConfigItemRepository
+	private playerMetadataRepo: PlayerMetadataRepository
+	private valueChangeLogRepo: ValueChangeLogRepository
 
 	constructor(
 		private db: Database,
@@ -45,6 +50,8 @@ export default class UserCommand {
 		this.playerRepo = this.db.get(Player)
 		this.guildRepo = this.db.get(Guild)
 		this.counterRepo = this.db.get(DailyCounter)
+		this.playerMetadataRepo = this.db.get(PlayerMetadata)
+		this.valueChangeLogRepo = this.db.get(ValueChangeLog)
 	}
 
 	@Slash({
@@ -98,6 +105,50 @@ export default class UserCommand {
 		const member = interaction.member as GuildMember
 		await updateMemberLevelRoles(member, playerProfile.exp, this.logger)
 
+		// Check if player qualifies for initial silver and hasn't received it yet
+		if (playerProfile.exp >= expDoubleLimit) {
+			// Find or create player metadata
+			let playerMetadata = await this.playerMetadataRepo.findOne({
+				user: userEntity,
+				guild: guildEntity,
+			})
+
+			if (!playerMetadata) {
+				// Create new metadata if it doesn't exist
+				playerMetadata = new PlayerMetadata()
+				playerMetadata.id = playerProfile.id // Use same ID pattern as player
+				playerMetadata.user = userEntity
+				playerMetadata.guild = guildEntity
+				playerMetadata.initSilverGiven = false
+				await this.playerMetadataRepo.getEntityManager().persistAndFlush(playerMetadata)
+			}
+
+			// If player hasn't received initial silver, give them 100 silver
+			if (!playerMetadata.initSilverGiven) {
+				// Update player silver
+				await this.playerRepo.updatePlayerValue(
+					{ id: playerProfile.id },
+					100,
+					'silver'
+				)
+
+				// Log the silver reward
+				await this.valueChangeLogRepo.insertLog(
+					playerProfile,
+					userEntity,
+					100,
+					'silver',
+					'初次达到经验上限奖励'
+				)
+
+				// Update metadata to mark silver as given
+				playerMetadata.initSilverGiven = true
+				await this.playerMetadataRepo.getEntityManager().persistAndFlush(playerMetadata)
+
+				this.logger.log(`Initial silver (100) given to player ${userEntity.id} in guild ${guildEntity.id}`, 'info')
+			}
+		}
+
 		const payload = {
 			dcName: userNickname,
 			dcId: userEntity.id,
@@ -107,7 +158,6 @@ export default class UserCommand {
 			qualified: true,
 		}
 
-		// TODO: save to database
 		const playerQualifiedRequiredConfig = await this.configRepo.get('playerQualifiedRequired', guildEntity)
 		const playerQualifiedRequired = playerQualifiedRequiredConfig !== null
 			? (JSON.parse(playerQualifiedRequiredConfig.value) as string[])
@@ -145,6 +195,8 @@ export default class UserCommand {
 			counter = await this.counterRepo.initCounter(playerProfile)
 		}
 
+		// refresh player profile
+		await this.playerRepo.getEntityManager().refresh(playerProfile)
 		const { embed, attachment } = this.buildPlayerInfoEmbed(playerProfile, counter, userTag, userNickname, expDoubleLimit)
 
 		const replayStr = payload.qualified
@@ -188,7 +240,7 @@ export default class UserCommand {
 				}
 			)
 
-		if (playerProfile.exp > expDoubleLimit) {
+		if (playerProfile.exp >= expDoubleLimit) {
 			embed.addFields(
 				{
 					name: '金币余额',
