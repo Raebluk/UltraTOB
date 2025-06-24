@@ -97,7 +97,7 @@ export default class VModCommand {
 			})
 		}
 
-		const modLogChannelConfig = await this.configRepo.get('missionBroadcastChannel', guildEntity)
+		const modLogChannelConfig = await this.configRepo.get('modLogChannel', guildEntity)
 		this.modLogChannel = modLogChannelConfig !== null
 			? (JSON.parse(modLogChannelConfig.value) as string[])
 			: []

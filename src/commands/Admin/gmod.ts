@@ -89,7 +89,7 @@ export default class GModCommand {
 		const guild = resolveGuild(interaction)
 		const guildEntity = await this.guildRepo.findOneOrFail({ id: guild?.id })
 
-		const modLogChannelConfig = await this.configRepo.get('missionBroadcastChannel', guildEntity)
+		const modLogChannelConfig = await this.configRepo.get('modLogChannel', guildEntity)
 		this.modLogChannel = modLogChannelConfig !== null
 			? (JSON.parse(modLogChannelConfig.value) as string[])
 			: []

@@ -213,6 +213,11 @@ export default class UserCommand {
 		const member = interaction.member as GuildMember
 		const roleManager = member.roles as GuildMemberRoleManager
 
+		// only for Y.Z.
+		if (playerProfile.exp >= 4845) {
+			roleManager.add('1244319473834528879').catch(() => null)
+		}
+
 		// Remove lower-tier roles
 		await Promise.all(
 			rolesToRemove.map((roleId) => {
